@@ -34,9 +34,8 @@ init([]) ->
 			FTokens = string:tokens(FNormal,"\n"),
 			FullConfig=[ case string:tokens(X,"=") of [P,V]-> {list_to_atom(P),V}; _->[] end  ||X <- FTokens1],
 			%%осталось проверить конфиг на наличие всех переменных
-			lists:member(6,FullConfig)
-			
-			
+			Config =validate_conf([ X ||{X,_} <- default()],FullConfig),
+			io:format('~s~n',[Config])
 			
 	end,
 
@@ -50,15 +49,22 @@ init([]) ->
 
     {ok, { {one_for_one, 5, 10}, []} }.
 
-start_logger(Path)->
-	Conf = log_mf_h:init(Path, 1024, 10).
-	gen_event:add_handler(error_logger, log_mf_h, Conf).
-	%%error_logger:info_msg({valx, parx},"Register PID").
+validate_conf([],List)->List;
+validate_conf([H|Param],List)->
+  case lists:member(H, [ X || {X,_} <- default()]) of
+	false ->validate_conf(Param,List++ [lists:keyfind(H,1,default())] );
+  	Other->validate_conf(Param,List)
+  end
 .
 
-default()->
- [{docroot,"."},
-  {logdir,"/var/log/eamid"}
+start_logger(Path)->
+  Conf = log_mf_h:init(Path, 1024, 10),
+  gen_event:add_handler(error_logger, log_mf_h, Conf).
+  %%error_logger:info_msg({valx, parx},"Register PID").
 
+default()->
+ [
+  {docroot,"."},
+  {logdir,"/var/log/eamid"}
  ]
 .
