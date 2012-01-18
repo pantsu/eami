@@ -51,10 +51,10 @@ init([]) ->
     %%формируем параметры для запуска списка активных звонков.
     Qcalls = {qcalls, {qcalls, start_link, []}, permanent, 5000, worker, [qcalls]},
     %%формируем параметры для запуска парсера сообщений от астериска.
-    {eamihost,H}=lists:keyfind(eamihost,Config),
-    {eamiport,P}=lists:keyfind(eamiport,Config),Port=list_to_integer(P),
-    {eamilogin,L}=lists:keyfind(eamilogin,Config),
-    {eamipassword,Pass}=lists:keyfind(eamipassword,Config),
+    {eamihost,H}=lists:keyfind(eamihost,1,Config),
+    {eamiport,P}=lists:keyfind(eamiport,1,Config),Port=list_to_integer(P),
+    {eamilogin,L}=lists:keyfind(eamilogin,1,Config),
+    {eamipassword,Pass}=lists:keyfind(eamipassword,1,Config),
     Pooler = {pooler, {pooler, start_link, [H,Port,L,Pass]}, permanent, 5000, worker, [pooler]},
 
 
