@@ -37,14 +37,9 @@ connect(Host,Port,{off,Login,Pass})->
 connect(Host,Port,Message)->
 	case gen_tcp:connect(Host,Port,[list, {packet, line}]) of
 	{ok,Socket}->
-		io:format('!~n',[]),
 		[{asterisk_eami,"version 1.1"}]=parser([],Socket),
-		io:format('!!~n',[]),
 		gen_tcp:send(Socket,Message),
-		io:format('!!!~n',[]),
-		%%[{asterisk_eami,access_auth}]=parser([],Socket),
-		ZZZ=parser([],Socket),
-		io:format('!!!!~w~n',[ZZZ]),
+		[{asterisk_eami,access_auth}]=parser([],Socket),
 		Socket
 	;
 	_->
