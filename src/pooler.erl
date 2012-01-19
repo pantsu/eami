@@ -191,18 +191,17 @@ pooler(Newchannel,Socket)->
 			io:format('.',[]),
 			case pp(event,Other) of
 				"Newstate"->
-					io:format('~nNewstate: ~w',[Other]),
-%%					case pp(calleridnum,Other) of
-%%						[]->ok;
-%%						CalleridNum when is_list(CalleridNum)->
-%%						%%Добавляем номер в канал из пришедшей информации.
-%%							[{SS,DATA}]=[{_S,[CalleridNum,_B,_C,[]]}||{_S,[_,_B,_C,_],_}<-qcalls:get(),_S=:=pp(channel,Other)],
-%%							qcalls:del(pp(channel,Other)),
-%%							qcalls:add(SS,DATA)
-%%						;
-%%						_->ok
-%%					end
-				ok
+					error_logger:info_msg({?MODULE,pooler},"Channel new state:"++pp(channel,Other)),
+					qcalls:update(
+						#newchannel{
+							channel=         pp(channel,Other),
+							channelstate=    pp(channelstate,Other),
+							channelstatedesc=pp(channelstatedesc,Other),
+							calleridnum=     pp(calleridnum,Other),
+							calleridname=    pp(calleridname,Other),
+							uniqueid=        pp(uniqueid,Other)
+						}
+					)
 				;
 				%%Как только в очереди появился новый свободный Location, на всякий случай подчищаем qcalls:...
 				"QueueMemberStatus"->
@@ -234,7 +233,8 @@ pooler(Newchannel,Socket)->
 						context         =pp(context,  Other),
 						uniqueid        =pp(uniqueid, Other),
 						link            =none,
-						date            =newtime()
+						date            =newtime(),
+						history		=[]
 					}),
 					
 					qcalls:add(pp(channel,Other),[	
@@ -245,7 +245,7 @@ pooler(Newchannel,Socket)->
 				;  
 				"Unlink"->io:format('~nUnlink: ~w',[Other]);
 				"Hangup"->
-					error_logger:info_msg({?MODULE,pooler},"Create new channel:"++pp(channel,Other)),
+					error_logger:info_msg({?MODULE,pooler},"Delete(Hangup) channel:"++pp(channel,Other)),
 					qcalls:del(pp(channel,Other))
 				;
 				"Bridge"->
