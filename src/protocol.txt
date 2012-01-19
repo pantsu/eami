@@ -1,0 +1,264 @@
+Asterisk Call Manager/1.1
+Action: login
+Username: komm
+Secret: afrika
+
+Response: Success
+Message: Authentication accepted
+
+Event: FullyBooted
+Privilege: system,all
+Status: Fully Booted
+
+
+Response: Error
+Message: Missing action in request
+
+
+Response: Error
+Message: Missing action in request
+
+Event: Newchannel
+Privilege: call,all
+Channel: SIP/callman62-00000f57
+ChannelState: 0
+ChannelStateDesc: Down
+CallerIDNum: 8863
+CallerIDName: Karpov Dmitry
+AccountCode: 
+Exten: 1195
+Context: fromyandex
+Uniqueid: 1314022692.3927
+
+Event: VarSet
+Privilege: dialplan,all
+Channel: SIP/callman62-00000f57
+Variable: SIPURI
+Value: sip:8863@95.108.178.241:5060
+Uniqueid: 1314022692.3927
+
+Event: VarSet
+Privilege: dialplan,all
+Channel: SIP/callman62-00000f57
+Variable: SIPDOMAIN
+Value: 77.75.159.20:5060
+Uniqueid: 1314022692.3927
+
+Event: VarSet
+Privilege: dialplan,all
+Channel: SIP/callman62-00000f57
+Variable: SIPCALLID
+Value: 901eef80-e5216524-1f95d-f1b26c5f@95.108.178.241
+Uniqueid: 1314022692.3927
+
+Event: Newstate
+Privilege: call,all
+Channel: SIP/callman62-00000f57
+ChannelState: 4
+ChannelStateDesc: Ring
+CallerIDNum: 8863
+CallerIDName: Karpov Dmitry
+Uniqueid: 1314022692.3927
+
+Event: Newexten
+Privilege: dialplan,all
+Channel: SIP/callman62-00000f57
+Context: fromyandex
+Extension: 1195
+Priority: 1
+Application: Answer
+AppData: 
+Uniqueid: 1314022692.3927
+
+Event: Newstate
+Privilege: call,all
+Channel: SIP/callman62-00000f57
+ChannelState: 6
+ChannelStateDesc: Up
+CallerIDNum: 8863
+CallerIDName: Karpov Dmitry
+Uniqueid: 1314022692.3927
+
+Event: Newexten
+Privilege: dialplan,all
+Channel: SIP/callman62-00000f57
+Context: fromyandex
+Extension: 1195
+Priority: 2
+Application: Playback
+AppData: /usr/local/asterisk-1.8.3.2/var/spool/asterisk/sounds/8zdra,m
+Uniqueid: 1314022692.3927
+
+Event: VarSet
+Privilege: dialplan,all
+Channel: SIP/callman62-00000f57
+Variable: RTPAUDIOQOS
+Value: ssrc=1032070738;themssrc=59086;lp=0;rxjitter=0.000239;rxcount=141;txjitter=0.000000;txcount=141;rlp=0;rtt=0.000000
+Uniqueid: 1314022692.3927
+
+Event: VarSet
+Privilege: dialplan,all
+Channel: SIP/callman62-00000f57
+Variable: RTPAUDIOQOSJITTER
+Value: minrxjitter=0.000000;maxrxjitter=0.000000;avgrxjitter=0.000000;stdevrxjitter=0.000000;reported_minjitter=0.000000;reported_maxjitter=0.000000;reported_avgjitter=0.000000;reported_stdevjitter=0.000000;
+Uniqueid: 1314022692.3927
+
+Event: VarSet
+Privilege: dialplan,all
+Channel: SIP/callman62-00000f57
+Variable: RTPAUDIOQOSLOSS
+Value: minrxlost=0.000000;maxrxlost=0.000000;avgrxlost=0.000000;stdevrxlost=0.000000;reported_minlost=0.000000;reported_maxlost=0.000000;reported_avglost=0.000000;reported_stdevlost=0.000000;
+Uniqueid: 1314022692.3927
+
+Event: VarSet
+Privilege: dialplan,all
+Channel: SIP/callman62-00000f57
+Variable: RTPAUDIOQOSRTT
+Value: minrtt=0.000000;maxrtt=0.000000;avgrtt=0.000000;stdevrtt=0.000000;
+Uniqueid: 1314022692.3927
+
+Event: VarSet
+Privilege: dialplan,all
+Channel: SIP/callman62-00000f57
+Variable: PLAYBACKSTATUS
+Value: SUCCESS
+Uniqueid: 1314022692.3927
+
+Event: Hangup
+Privilege: call,all
+Channel: SIP/callman62-00000f57
+Uniqueid: 1314022692.3927
+CallerIDNum: 8863
+CallerIDName: Karpov Dmitry
+Cause: 0
+Cause-txt: Unknown
+
+Event: Cdr
+Privilege: cdr,all
+AccountCode: 
+Source: 8863
+Destination: 1195
+DestinationContext: fromyandex
+CallerID: "Karpov Dmitry" <8863>
+Channel: SIP/callman62-00000f57
+DestinationChannel: 
+LastApplication: Playback
+LastData: /usr/local/asterisk-1.8.3.2/var/spool/asterisk/sounds/8zdra,m
+StartTime: 2011-08-22 18:18:12
+AnswerTime: 2011-08-22 18:18:12
+EndTime: 2011-08-22 18:18:15
+Duration: 3
+BillableSeconds: 3
+Disposition: ANSWERED
+AMAFlags: DOCUMENTATION
+UniqueID: 1314022692.3927
+UserField: 
+
+Event: PeerStatus
+Privilege: system,all
+ChannelType: SIP
+Peer: SIP/00777
+PeerStatus: Registered
+Address: 109.235.162.254:5060
+
+Event: QueueMemberStatus
+Privilege: agent,all
+Queue: line2
+Location: SIP/00777
+MemberName: SIP/00777
+Membership: static
+Penalty: 0
+CallsTaken: 6
+LastCall: 1313928440
+Status: 1
+Paused: 0
+
+Event: QueueMemberStatus
+Privilege: agent,all
+Queue: line1
+Location: SIP/00777
+MemberName: SIP/00777
+Membership: static
+Penalty: 0
+CallsTaken: 0
+LastCall: 0
+Status: 1
+Paused: 0
+
+Event: PeerStatus
+Privilege: system,all
+ChannelType: SIP
+Peer: SIP/00777
+PeerStatus: Registered
+Address: 109.235.162.254:5060
+
+Event: QueueMemberStatus
+Privilege: agent,all
+Queue: line2
+Location: SIP/00777
+MemberName: SIP/00777
+Membership: static
+Penalty: 0
+CallsTaken: 6
+LastCall: 1313928440
+Status: 1
+Paused: 0
+
+Event: QueueMemberStatus
+Privilege: agent,all
+Queue: line1
+Location: SIP/00777
+MemberName: SIP/00777
+Membership: static
+Penalty: 0
+CallsTaken: 0
+LastCall: 0
+Status: 1
+Paused: 0
+
+Event: VarSet
+Privilege: dialplan,all
+Channel: SIP/callman01-00000f39
+Variable: ~HASH~SIP_CAUSE~SIP/callman61-00000f3b~
+Value: SIP 100 Trying
+Uniqueid: 1314021780.3897
+
+Event: VarSet
+Privilege: dialplan,all
+Channel: SIP/callman01-00000f39
+Variable: ~HASH~SIP_CAUSE~SIP/callman61-00000f3b~
+Value: SIP 200 OK
+Uniqueid: 1314021780.3897
+
+Event: PeerStatus
+Privilege: system,all
+ChannelType: SIP
+Peer: SIP/00777
+PeerStatus: Registered
+Address: 109.235.162.254:5060
+
+Event: QueueMemberStatus
+Privilege: agent,all
+Queue: line2
+Location: SIP/00777
+MemberName: SIP/00777
+Membership: static
+Penalty: 0
+CallsTaken: 6
+LastCall: 1313928440
+Status: 1
+Paused: 0
+
+Event: QueueMemberStatus
+Privilege: agent,all
+Queue: line1
+Location: SIP/00777
+MemberName: SIP/00777
+Membership: static
+Penalty: 0
+CallsTaken: 0
+LastCall: 0
+Status: 1
+Paused: 0
+
+

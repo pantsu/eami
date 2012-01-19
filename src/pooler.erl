@@ -6,8 +6,9 @@
 -export([main/4,start_link/0,start_link/4,activeaction/2,redirect/2,chan_spy/2]).
 -export([code_change/3,handle_cast/2,handle_info/2,terminate/2,init/1,handle_call/3]).
 
--record(chanparams,{calleridnum,calleridname,uniqueid,link}).
--record(channel,{channel,param,time,history=[]}).
+-record(newchannel,{privilege, channel, channelstate, channelstatedesc, calleridnum, calleridname, accountcode, exten, context, uniqueid,link,date,history}).
+-record(newstate,{privilege,channel,channelstate,channelstatedesc,calleridnum,calleridname,uniqueid}).
+-record(newexten,{privilege,channel,context,extension,priority,application,appdata,uniqueid}).
 
 %%gen_server callback function
 start_link()->       start_link("localhost",5038,"","").
@@ -21,6 +22,8 @@ handle_info(_,_)->   ok.
 terminate(_,_)->     ok.
 
 %%internal function.
+newtime()-> calendar:datetime_to_gregorian_seconds(calendar:now_to_universal_time( now()))-719528*24*3600.
+
 main(Host,Port,Login,Pass)->
 	error_logger:info_msg({?MODULE,main},"Start AMI parser"),
 	Socket=connect(Host,Port,{on,Login,Pass}),
@@ -189,52 +192,71 @@ pooler(Newchannel,Socket)->
 			case pp(event,Other) of
 				"Newstate"->
 					io:format('~nNewstate: ~w',[Other]),
-					case pp(calleridnum,Other) of
-						[]->ok;
-						CalleridNum when is_list(CalleridNum)->
-						%%Добавляем номер в канал из пришедшей информации.
-							[{SS,DATA}]=[{_S,[CalleridNum,_B,_C,[]]}||{_S,[_,_B,_C,_],_}<-qcalls:get(),_S=:=pp(channel,Other)],
-							qcalls:del(pp(channel,Other)),
-							qcalls:add(SS,DATA)
-						;
-						_->ok
-					end
+%%					case pp(calleridnum,Other) of
+%%						[]->ok;
+%%						CalleridNum when is_list(CalleridNum)->
+%%						%%Добавляем номер в канал из пришедшей информации.
+%%							[{SS,DATA}]=[{_S,[CalleridNum,_B,_C,[]]}||{_S,[_,_B,_C,_],_}<-qcalls:get(),_S=:=pp(channel,Other)],
+%%							qcalls:del(pp(channel,Other)),
+%%							qcalls:add(SS,DATA)
+%%						;
+%%						_->ok
+%%					end
+				ok
 				;
 				%%Как только в очереди появился новый свободный Location, на всякий случай подчищаем qcalls:...
 				"QueueMemberStatus"->
-						io:format('~nQueueMemberStatus~w',[Other]),
-						Location=pp(location,Other)--"SIP/callman61/",
-						io:format('~n__Location: ~s~n',[Location]),
-						case Newchannel of
-							[]->ok;
-							_->
-								AllCalls=qcalls:get(),
-								qcalls:del(Newchannel),
-								[qcalls:add(_Ch,[Location,"",_Uniq,[]]) || {_Ch,[_,_,_Uniq,[]],_Date} <-AllCalls,_Ch=:=Newchannel]
-						end
+%%						io:format('~nQueueMemberStatus~w',[Other]),
+%%						Location=pp(location,Other)--"SIP/callman61/",
+%%						io:format('~n__Location: ~s~n',[Location]),
+%%						case Newchannel of
+%%							[]->ok;
+%%							_->
+%%								AllCalls=qcalls:get(),
+%%								qcalls:del(Newchannel),
+%%								[qcalls:add(_Ch,[Location,"",_Uniq,[]]) || {_Ch,[_,_,_Uniq,[]],_Date} <-AllCalls,_Ch=:=Newchannel]
+%%						end
+				ok
 				;
 				"Newchannel"->
-						io:format('~nNewchannel: ~w',[Other]),
-						qcalls:add(pp(channel,Other),[	
+%%-record(newchannel,{privilege, channel, channelstate, channelstatedesc, calleridnum, calleridname, accountcode, exten, context, uniqueid,link,date}).
+					error_logger:error_msg({?MODULE,pooler},"Create new channel:"++pp(channel,Other)),
+					io:format('~nNewchannel: ~w',[Other]),
+					qcalls:add(
+					#newchannel{
+						channel         =pp(channel,  Other),
+						channelstate    =pp(channelstate,    Other),
+						channelstatedesc=pp(channelstatedesc,Other),
+						calleridnum     =pp(calleridnum,     Other),
+						calleridname    =pp(calleridname,    Other),
+						accountcode     =pp(accountcode,Other),
+						exten           =pp(exten,    Other),
+						context         =pp(context,  Other),
+						uniqueid        =pp(uniqueid, Other),
+						link            =none,
+						date            =newtime()
+					}),
+					
+					qcalls:add(pp(channel,Other),[	
 								pp(calleridnum,Other),
 								pp(calleridname,Other),
 								pp(uniqueid,Other),
-								[] ]),
-						pooler(pp(channel,Other),Socket)
+								[] ])
 				;  
 				"Unlink"->io:format('~nUnlink: ~w',[Other]);
 				"Hangup"->
-					io:format('~nHangup: ~w',[Other]),
-					qcalls:del(pp(channel,Other))
+					io:format('~nHangup: ~w',[Other])
+%%					qcalls:del(pp(channel,Other))
 				;
 				"Bridge"->
-					%%TODO добавить рекорт для параметров. -record(chanparams,{calleridnum,calleridname,uniqueid,link})
-					AllCalls=qcalls:get(),
-					qcalls:del(pp(channel1,Other)),
-					qcalls:del(pp(channel2,Other)),
-				[qcalls:add(_Ch0,[N1,N2,N3,pp(channel2,Other)]) || {_Ch0,[N1,N2,N3,_],_} <-AllCalls,_Ch0=:=pp(channel1,Other)],
-				[qcalls:add(_Ch1,[M1,M2,M3,pp(channel1,Other)]) || {_Ch1,[M1,M2,M3,_],_} <-AllCalls,_Ch1=:=pp(channel2,Other)],
-					io:format('~nBridge: ~w',[Other])
+					ok
+%%					%%TODO добавить рекорт для параметров. -record(chanparams,{calleridnum,calleridname,uniqueid,link})
+%%					AllCalls=qcalls:get(),
+%%					qcalls:del(pp(channel1,Other)),
+%%					qcalls:del(pp(channel2,Other)),
+%%				[qcalls:add(_Ch0,[N1,N2,N3,pp(channel2,Other)]) || {_Ch0,[N1,N2,N3,_],_} <-AllCalls,_Ch0=:=pp(channel1,Other)],
+%%				[qcalls:add(_Ch1,[M1,M2,M3,pp(channel1,Other)]) || {_Ch1,[M1,M2,M3,_],_} <-AllCalls,_Ch1=:=pp(channel2,Other)],
+%%					io:format('~nBridge: ~w',[Other])
 				;
 				_->
 					pooler(Newchannel,Socket)
