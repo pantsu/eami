@@ -220,7 +220,7 @@ pooler(Newchannel,Socket)->
 				;
 				"Newchannel"->
 %%-record(newchannel,{privilege, channel, channelstate, channelstatedesc, calleridnum, calleridname, accountcode, exten, context, uniqueid,link,date}).
-					error_logger:error_msg({?MODULE,pooler},"Create new channel:"++pp(channel,Other)),
+					error_logger:info_msg({?MODULE,pooler},"Create new channel:"++pp(channel,Other)),
 					io:format('~nNewchannel: ~w',[Other]),
 					qcalls:add(
 					#newchannel{
@@ -245,8 +245,8 @@ pooler(Newchannel,Socket)->
 				;  
 				"Unlink"->io:format('~nUnlink: ~w',[Other]);
 				"Hangup"->
-					io:format('~nHangup: ~w',[Other])
-%%					qcalls:del(pp(channel,Other))
+					error_logger:info_msg({?MODULE,pooler},"Create new channel:"++pp(channel,Other)),
+					qcalls:del(pp(channel,Other))
 				;
 				"Bridge"->
 					ok
