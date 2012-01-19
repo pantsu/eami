@@ -235,13 +235,7 @@ pooler(Newchannel,Socket)->
 						link            =none,
 						date            =newtime(),
 						history		=[]
-					}),
-					
-					qcalls:add(pp(channel,Other),[	
-								pp(calleridnum,Other),
-								pp(calleridname,Other),
-								pp(uniqueid,Other),
-								[] ])
+					})
 				;  
 				"Unlink"->io:format('~nUnlink: ~w',[Other]);
 				"Hangup"->
