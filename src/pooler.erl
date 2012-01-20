@@ -49,7 +49,7 @@ connect(Host,Port,Message)->
 		error_logger:error_msg({?MODULE,connect},"Could't connect into EAMI"),
 		exit(error_socket),
 		%%И тут можно уже запустить астериск или остановить поток для рестарта его gen_server'ом
-		io:format('error socket~n',[]),
+		%%io:format('error socket~n',[]),
 		receive after ?TIMEOUT -> ok end,
 		connect(Host,Port,Message)
 	end
@@ -183,12 +183,12 @@ bridge(Channel1,Channel2,Socket)->
 pooler(Socket)->pooler([],Socket).
 pooler(Newchannel,Socket)->
 	case parser([],Socket) of
-		[{timeout,_}]->io:format('timeout~n',[]);
-		{timeout,_}->io:format('timeout~n',[]);
+		[{timeout,_}]->timeout; %%io:format('timeout~n',[]);
+		{timeout,_}->timeout; %%io:format('timeout~n',[]);
 		{error,tcp_closed}-> exit(error);
 		{error,_}->pooler(Newchannel,Socket);
 		Other->
-			io:format('.',[]),
+%%			io:format('.',[]),
 			case pp(event,Other) of
 				"Newstate"->
 					error_logger:info_msg({?MODULE,pooler},"Channel new state:"++pp(channel,Other)),
