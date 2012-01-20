@@ -6,7 +6,7 @@
 -export([main/4,start_link/0,start_link/4,activeaction/2,redirect/2,chan_spy/2]).
 -export([code_change/3,handle_cast/2,handle_info/2,terminate/2,init/1,handle_call/3]).
 
--record(newchannel,{privilege, channel, channelstate, channelstatedesc, calleridnum, calleridname, accountcode, exten, context, uniqueid,link,date,history}).
+-record(newchannel,{privilege, channel, channelstate, channelstatedesc, calleridnum, calleridname, accountcode, application, applicationdata, exten, context, uniqueid,link=none,date,history}).
 -record(newstate,{privilege,channel,channelstate,channelstatedesc,calleridnum,calleridname,uniqueid}).
 -record(newexten,{privilege,channel,context,extension,priority,application,appdata,uniqueid}).
 
@@ -203,6 +203,19 @@ pooler(Newchannel,Socket)->
 						}
 					)
 				;
+				"Newexten"->
+					error_logger:info_msg({?MODULE,pooler},"Channel newexten:"++pp(channel,Other)),
+					qcalls:update(
+						#newchannel{
+							channel=         pp(channel,Other),
+							exten=		 pp(extension,Other),
+							application =	 pp(application,Other),
+							applicationdata =pp(appdata,Other),
+							uniqueid=        pp(uniqueid,Other)
+						}
+					)
+				;
+
 				%%Как только в очереди появился новый свободный Location, на всякий случай подчищаем qcalls:...
 				"QueueMemberStatus"->
 %%						io:format('~nQueueMemberStatus~w',[Other]),
@@ -218,9 +231,7 @@ pooler(Newchannel,Socket)->
 				ok
 				;
 				"Newchannel"->
-%%-record(newchannel,{privilege, channel, channelstate, channelstatedesc, calleridnum, calleridname, accountcode, exten, context, uniqueid,link,date}).
 					error_logger:info_msg({?MODULE,pooler},"Create new channel:"++pp(channel,Other)),
-					io:format('~nNewchannel: ~w',[Other]),
 					qcalls:add(
 					#newchannel{
 						channel         =pp(channel,  Other),
@@ -237,20 +248,36 @@ pooler(Newchannel,Socket)->
 						history		=[]
 					})
 				;  
-				"Unlink"->io:format('~nUnlink: ~w',[Other]);
+				"Unlink"->
+					error_logger:info_msg({?MODULE,pooler},"Unlink channel "++pp(channel1,Other)++" and channel "++pp(channel2,Other)),
+					qcalls:update(
+					#newchannel{
+						channel		=pp(channel1,Other),
+						link		=none
+					}),
+					qcalls:update(
+					#newchannel{
+						channel		=pp(channel2,Other),
+						link		=none
+					})
+
+				;
 				"Hangup"->
 					error_logger:info_msg({?MODULE,pooler},"Delete(Hangup) channel:"++pp(channel,Other)),
 					qcalls:del(pp(channel,Other))
 				;
 				"Bridge"->
-					ok
-%%					%%TODO добавить рекорт для параметров. -record(chanparams,{calleridnum,calleridname,uniqueid,link})
-%%					AllCalls=qcalls:get(),
-%%					qcalls:del(pp(channel1,Other)),
-%%					qcalls:del(pp(channel2,Other)),
-%%				[qcalls:add(_Ch0,[N1,N2,N3,pp(channel2,Other)]) || {_Ch0,[N1,N2,N3,_],_} <-AllCalls,_Ch0=:=pp(channel1,Other)],
-%%				[qcalls:add(_Ch1,[M1,M2,M3,pp(channel1,Other)]) || {_Ch1,[M1,M2,M3,_],_} <-AllCalls,_Ch1=:=pp(channel2,Other)],
-%%					io:format('~nBridge: ~w',[Other])
+					error_logger:info_msg({?MODULE,pooler},"Bridge channel "++pp(channel1,Other)++" and channel "++pp(channel2,Other)),
+					qcalls:update(
+					#newchannel{
+						channel		=pp(channel1,Other),
+						link		=pp(channel2,Other)
+					}),
+					qcalls:update(
+					#newchannel{
+						channel		=pp(channel2,Other),
+						link		=pp(channel1,Other)
+					})
 				;
 				_->
 					pooler(Newchannel,Socket)
@@ -259,4 +286,30 @@ pooler(Newchannel,Socket)->
 	pooler(Socket)
 	
 .
+
+%%
+%%Event: PeerStatus
+%%Privilege: system,all
+%%ChannelType: SIP
+%%Peer: SIP/8243
+%%PeerStatus: Registered
+%%Address: 109.235.162.254:5060
+%%
+%%Event: RTCPSent
+%%Privilege: reporting,all
+%%To 109.235.162.250:20953
+%%OurSSRC: 1236171297
+%%SentNTP: 1327055340.2380857344
+%%SentRTP: 1189600
+%%SentPackets: 4251
+%%SentOctets: 680160
+%%ReportBlock:
+%%FractionLost: 0
+%%CumulativeLoss: 0
+%%IAJitter: 0.0002
+%%TheirLastSR: 0
+%%DLSR: 16876.5810 (sec)
+
+
+
 
