@@ -20,9 +20,9 @@ vvv(_,New)->New.
 %%input #newchannel on add(Channel)
 add(Channel)-> gen_server:call(qcalls,{add,Channel}).
 %%input value #newchannel.channel on del(Channel)
-del(Channel)->       io:format('...........~w~n........',[Channel]),gen_server:call(qcalls,{del,Channel}).
+del(Channel)-> gen_server:call(qcalls,{del,Channel}).
 %%input value #newchannel.channel on get(Channel)
-get(Channel)->       gen_server:call(qcalls,{get,Channel}).
+get(Channel)-> gen_server:call(qcalls,{get,Channel}).
 get()->       gen_server:call(qcalls,{get}).
 %%TODO: доделать update
 update(Channel)-> gen_server:call(qcalls,{update,Channel}) .
@@ -38,6 +38,9 @@ terminate(_,_)->     ok.
 handle_call({add,Channel}, _From, Session)-> {reply, ok, Session++[Channel]};
 
 handle_call({del,Channel}, _From, Session)->
+	   	     [error_logger:error_msg({?MODULE,handle_call_del},
+			"Can't delete channel: "++X#newchannel.channel) || 
+			X <-Session,is_record(X,newchannel),X#newchannel.channel=:=Channel],
 		     NewSession=[X || X <- Session, is_record(X,newchannel),X#newchannel.channel /= Channel ],	
 		     {reply, ok, NewSession};
 
