@@ -2,6 +2,7 @@
 -module(eamid_sup).
 
 -behaviour(supervisor).
+-include("http.hrl").
 
 %% API
 -export([start_link/0]).
@@ -57,9 +58,11 @@ init([]) ->
     {eamipassword,Pass}=lists:keyfind(eamipassword,1,Config),
     Pooler = {pooler, {pooler, start_link, [H,Port,L,Pass]}, permanent, 5000, worker, [pooler]},
 
-
-
-    %%формируем параметры для запуска вебсервера
+%%start cowboy:
+	application:start(cowboy),
+        Dispatch = [{'_', [{'_', cowboy_eamid, []}]}],
+	cowboy:start_listener(http, 100,cowboy_tcp_transport, [{port, 8080}],cowboy_http_protocol, [{dispatch, Dispatch}]),
+%%
 
     {ok, { {one_for_one, 5, 10}, [Qcalls,Pooler]} }.
 
