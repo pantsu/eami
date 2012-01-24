@@ -12,7 +12,7 @@ pp(P,List)->
 
 union([])->[];
 union([H|Tail])->
-	case [ X || X <-Tail,is_record(newchannel,X),X#newchannel.link=:=H#newchannel.channel ] of
+	case [ X || X <-Tail,X#newchannel.link=:=H#newchannel.channel ] of
 		[X]->
 			[[
 			  {'Channel',H#newchannel.channel},
@@ -24,19 +24,6 @@ union([H|Tail])->
 		;
 		_-> union(Tail)
 	end
-%%	{Ch1,[Num1,Name1,Uniq1,Link1],Date1}=Head,
-%%	%%Ищем пару к звонку	
-%%%%	[{Channel2,Nummer2}]=[{Ch2,Num2}||{Ch2,[Num2,Name2,Uniq2,Link2],Date2}<-Tail, Ch2=:=Link1],
-%%	
-%%	case [{Ch2,Num2}||{Ch2,[Num2,Name2,Uniq2,Link2],Date2}<-Tail, Ch2=:=Link1] of
-%%		[{Channel2,Nummer2}]->
-%%			%%Удаляем из хвоста списка найденную пару
-%%			TailWth=[catch {Ch3,[Num3,Name3,Uniq3,Link3],Date3}||{Ch3,[Num3,Name3,Uniq3,Link3],Date3}<-Tail, Ch3/=Link1],
-%%			[[{'Channel',Ch1},{'CallerIDNum',Num1},{'CallerIDNum2',Nummer2},{'Uniqueid',Uniq1},{'TimeStart',Date1}]]++union(TailWth)
-%%		;
-%%		%% А вообще тут надо поправить unlink.
-%%		_->union(Tail)
-%%	end
 .
 freecall()->
 	[ [{'Channel',X#newchannel.channel},{'CallerIDNum',X#newchannel.calleridnum},{'Uniqueid',X#newchannel.uniqueid},{'Link',"None"},{'TimeStart',X#newchannel.date}] 
@@ -64,7 +51,7 @@ handle(Req, State) ->
 				case pp("action",P) of
 					"status"-> 
 						%%Queue=freecall() ,
-						Queue=union()++freecall([]) ,
+						Queue=union(qcalls:get())++freecall() ,
 						io:format('[DEBUG]: [status]: ~w~n',[Queue]),
 						list_to_binary(json2:encode({struct,[{status,{array,[{struct,X}||X<-Queue ]}}]}))
 					
