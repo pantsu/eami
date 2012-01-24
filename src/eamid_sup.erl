@@ -57,6 +57,7 @@ init([]) ->
     {eamilogin,L}=lists:keyfind(eamilogin,1,Config),
     {eamipassword,Pass}=lists:keyfind(eamipassword,1,Config),
     Pooler = {pooler, {pooler, start_link, [H,Port,L,Pass]}, permanent, 5000, worker, [pooler]},
+    ActiveAction = {active_action, {active_action, start_link, [H,Port,L,Pass]}, permanent, 5000, worker, [active_action]},
 
 %%start cowboy:
 	application:start(cowboy),
@@ -64,7 +65,7 @@ init([]) ->
 	cowboy:start_listener(http, 100,cowboy_tcp_transport, [{port, 8080}],cowboy_http_protocol, [{dispatch, Dispatch}]),
 %%
 
-    {ok, { {one_for_one, 5, 10}, [Qcalls,Pooler]} }.
+    {ok, { {one_for_one, 5, 10}, [Qcalls,Pooler,ActiveAction]} }.
 
 validate_conf([],List)->List;
 validate_conf([H|Param],List)->

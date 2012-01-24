@@ -56,7 +56,6 @@ handle_call({get,Channel},_From, Session)->
 	             {reply,Answer,Session};
 
 handle_call({update,Channel},_From, Session)->
-%%TODO Исправить. Понять что передаем при обновлении.
 		     NewSession=[ case X of 
 				  R when R#newchannel.channel=:=Channel#newchannel.channel-> 
 					#newchannel{

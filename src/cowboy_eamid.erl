@@ -50,7 +50,6 @@ handle(Req, State) ->
 				io:format('~n~w~n',[P]),
 				case pp("action",P) of
 					"status"-> 
-						%%Queue=freecall() ,
 						Queue=union(qcalls:get())++freecall() ,
 						io:format('[DEBUG]: [status]: ~w~n',[Queue]),
 						list_to_binary(json2:encode({struct,[{status,{array,[{struct,X}||X<-Queue ]}}]}))
