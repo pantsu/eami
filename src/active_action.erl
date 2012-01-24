@@ -80,7 +80,7 @@ to_structure(List)->
 .
 
 redirect(Channel,NumberTo)->
-	error_logger:info_msg({?MODULE,redirect},"Active action REDIRECT",[{channel,Channel},{number_to,NumberTo}]),
+        error_logger:info_msg({?MODULE,redirect},"Active action REDIRECT. Channel: "++Channel++" . Number_to: "++NumberTo),
 	gen_server:cast(?MODULE,{redirect,Channel,NumberTo})
 .
 

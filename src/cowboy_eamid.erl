@@ -62,11 +62,12 @@ handle(Req, State) ->
 						end,
 						{html,"{\"action\":\"ok\"}"}
 					;
-					"redirect"->
+                                        "redirect"->
 						%%{"action":"redirect","channel":"_CHANEL","number":"66666"}
-						catch spawn(pooler,redirect,[pp(channel,P),pp(number,P)]),
-						{html,"{\"action\":\"ok\"}"}
-					;
+                                                active_action:redirect(pp("channel",P),pp("number",P)),
+                                                list_to_binary("{\"action\":\"ok\"}")
+                                        ;
+     
 					"chan_spy"->
 						catch spawn(pooler,chan_spy,[pp(channel,P),pp(number,P)]),
 						{html,"{\"action\":\"ok\"}"}
