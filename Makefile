@@ -1,12 +1,12 @@
 all:
-	rebar get-deps && rebar compile && rebar generate
+	./rebar get-deps && ./rebar compile && ./rebar generate
 
 clear:
-	rebar clean
+	./rebar clean
 
 clean:
-	rebar clean
+	./rebar clean
 rebild: 
-	rebar clean
-	rebar compile && rebar generate
+	./rebar clean
+	./rebar compile && ./rebar generate
 	
