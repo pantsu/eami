@@ -63,7 +63,7 @@ init([]) ->
 	application:start(cowboy),
         Dispatch = [{'_', [{'_', cowboy_eamid, []}]}],
 	{wwwport,WWWPort}=lists:keyfind(wwwport,1,Config),
-	cowboy:start_listener(http, 100,cowboy_tcp_transport, [{port, WWWPort}],cowboy_http_protocol, [{dispatch, Dispatch}]),
+	cowboy:start_listener(http, 100,cowboy_tcp_transport, [{port, list_to_integer(WWWPort)}],cowboy_http_protocol, [{dispatch, Dispatch}]),
 
     {ok, { {one_for_one, 5, 10}, [Qcalls,Pooler,ActiveAction]} }.
 
