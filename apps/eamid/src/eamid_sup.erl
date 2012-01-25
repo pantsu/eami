@@ -60,7 +60,7 @@ init([]) ->
     ActiveAction = {active_action, {active_action, start_link, [H,Port,L,Pass]}, permanent, 5000, worker, [active_action]},
 
 %%start cowboy:
-	%%application:start(cowboy),
+	application:start(cowboy),
         Dispatch = [{'_', [{'_', cowboy_eamid, []}]}],
 	{wwwport,WWWPort}=lists:keyfind(wwwport,1,Config),
 	cowboy:start_listener(http, 100,cowboy_tcp_transport, [{port, WWWPort}],cowboy_http_protocol, [{dispatch, Dispatch}]),
