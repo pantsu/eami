@@ -57,6 +57,7 @@ Priority: 1
 call(error,_)->ok;
 call(_,error)->ok;
 call(From,To)->
+	%%TODO: унести template в темплейт для erlydtl
 	CText=io_lib:format('~s',[template(From,To)]),
 	Rnd="call_"++integer_to_list(random:uniform(9999999999)),
 	Filename="/tmp/"++ Rnd,
@@ -100,8 +101,9 @@ handle(Req, State) ->
                                                 list_to_binary("{\"action\":\"ok\"}")
                                         ;
 					"set_device"->
-						erlydtl:compile("/usr/local/unison/eami/www/cisco7940.template", cisco7940),
-						erlydtl:compile("/usr/local/unison/eami/www/cisco7942.template", cisco7942),
+						%%TODO:  унести генерацию темплейтов в супервизор
+						erlydtl:compile("/usr/local/unison/eamid/template/cisco7940.template", cisco7940),
+						erlydtl:compile("/usr/local/unison/eamid/template/cisco7942.template", cisco7942),
 						{ok,Cisco79xx}=
 						case pp("model",P) of
 							"Cisco 7940"-> cisco7940:render([{number,pp(number,P)}]);
@@ -113,6 +115,7 @@ handle(Req, State) ->
 						Filename="/tftpboot/SIP"++Mac++".cnf",
 						io:format('[FILENAME]: ~s~n',[Filename]),
 						file:write_file(Filename,lists:flatten(Cisco79xx)),
+						%%TODO: унести базу маков в конфиг.
 						io:format('[IPPHONE]:~s  ~s~n~w~n',[ Mac,pp(Mac,bd()),bd()]),
 						case pp("model",P) of
 							"Cisco 7940"-> 
