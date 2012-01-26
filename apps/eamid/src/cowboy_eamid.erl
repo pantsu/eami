@@ -106,8 +106,8 @@ handle(Req, State) ->
 						erlydtl:compile("/usr/local/unison/eamid/template/cisco7942.template", cisco7942),
 						{ok,Cisco79xx}=
 						case pp("model",P) of
-							"Cisco 7940"-> cisco7940:render([{number,pp(number,P)}]);
-							"Cisco 7942"-> cisco7940:render([{number,pp(number,P)}]);
+							"Cisco 7940"-> cisco7940:render([{number,pp("number",P)}]);
+							"Cisco 7942"-> cisco7940:render([{number,pp("number",P)}]);
 							_->{ok,nodevice}
 						end,
 						io:format('~s~n',[lists:flatten(Cisco79xx)])	,
@@ -119,10 +119,10 @@ handle(Req, State) ->
 						io:format('[IPPHONE]:~s  ~s~n~w~n',[ Mac,pp(Mac,bd()),bd()]),
 						case pp("model",P) of
 							"Cisco 7940"-> 
-								catch spawn(os,cmd,["/usr/local/unison/eami/www/cisco7940.expect "++pp(Mac,bd())])
+								catch spawn(os,cmd,["/usr/local/unison/eamid/template/cisco7940.expect "++pp(Mac,bd())])
 							;
 							"Cisco 7942"-> 
-								catch spawn(os,cmd,["/usr/local/unison/eami/www/cisco7942.expect "++pp(Mac,bd())])
+								catch spawn(os,cmd,["/usr/local/unison/eamid/template/cisco7942.expect "++pp(Mac,bd())])
 							;
 							_->{ok,nodevice}
 						end,
