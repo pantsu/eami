@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+
+spawn telnet [lindex $argv 0]
+expect "Password :"
+send "*0\r"
+
+send "reset\r"
+expect eof
+
+

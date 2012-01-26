@@ -1,0 +1,14 @@
+#!/usr/bin/expect -f
+
+spawn ssh user@[lindex $argv 0]
+expect "password:"
+send "pass\r"
+expect "login:"
+send "default\r"
+expect "password:"
+send "user\r"
+
+send "sostat -p\r"
+send "exit\r"
+expect eof
+
