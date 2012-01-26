@@ -19,7 +19,7 @@ init([Host,Port,Login,Pass])->
 		[{asterisk_eami,"version 1.1"}]=parser([],Socket),
 		gen_tcp:send(Socket,Message),
 		[{asterisk_eami,access_auth}]=parser([],Socket),
-		{ok,[Socket]}
+		{ok,Socket}
 	;
 	_->
 		error_logger:error_msg({?MODULE,connect},"Could't connect into EAMI")
