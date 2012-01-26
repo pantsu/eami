@@ -51,7 +51,8 @@ handle_call({get,Channel},_From, Session)->
 		     Answer=
 		     case [X || X <-Session,is_record(X,newchannel),X#newchannel.channel=:=Channel] of
 			[O]->O;
-			[]->[]
+			[]->[];
+			_-> []
 		     end,
 	             {reply,Answer,Session};
 

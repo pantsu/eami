@@ -183,12 +183,11 @@ bridge(Channel1,Channel2,Socket)->
 pooler(Socket)->pooler([],Socket).
 pooler(Newchannel,Socket)->
 	case parser([],Socket) of
-		[{timeout,_}]->timeout; %%io:format('timeout~n',[]);
-		{timeout,_}->timeout; %%io:format('timeout~n',[]);
+		[{timeout,_}]->timeout;
+		{timeout,_}->timeout;
 		{error,tcp_closed}-> exit(error);
 		{error,_}->pooler(Newchannel,Socket);
 		Other->
-%%			io:format('.',[]),
 			case pp(event,Other) of
 				"Newstate"->
 					error_logger:info_msg({?MODULE,pooler},"Channel new state:"++pp(channel,Other)),
@@ -278,6 +277,17 @@ pooler(Newchannel,Socket)->
 						channel		=pp(channel2,Other),
 						link		=pp(channel1,Other)
 					})
+				;
+				"Rename"->
+					error_logger:info_msg({?MODULE,pooler},"Rename channel. Old name "++pp(oldname,Other)++" , new name: "++pp(newname,Other)),
+					Old=qcalls:get(pp(oldname,Other)),
+					New=Old#newchannel{channel=pp(newname,Other)},
+					qcalls:add(New),
+					qcalls:del(pp(oldname,Other))
+%%Event: Rename
+%%Oldname: SIP/1234-6378
+%%Newname: SIP/1234-6378
+%%Uniqueid: 1124982513.19184
 				;
 				_->
 					pooler(Newchannel,Socket)
