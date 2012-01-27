@@ -64,6 +64,11 @@ init([]) ->
         Dispatch = [{'_', [{'_', cowboy_eamid, []}]}],
 	{wwwport,WWWPort}=lists:keyfind(wwwport,1,Config),
 	cowboy:start_listener(http, 100,cowboy_tcp_transport, [{port, list_to_integer(WWWPort)}],cowboy_http_protocol, [{dispatch, Dispatch}]),
+%%change UID:
+	setuid:start_link(),
+	{uid,UID}=lists:keyfind(uid,1,Config),
+	setuid:setuid(UID),
+	error_logger:info_msg({?MODULE, init},"Change UID"),
 
     {ok, { {one_for_one, 5, 10}, [Qcalls,Pooler,ActiveAction]} }.
 
@@ -88,7 +93,8 @@ default()->
   {eamiport,"5038"},
   {eamilogin,""},
   {eamipassword,""},
-  {wwwport,"8080"}
+  {wwwport,"8080"},
+  {uid,"33"}
  ]
 .
 
