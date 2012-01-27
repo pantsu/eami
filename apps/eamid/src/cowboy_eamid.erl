@@ -107,7 +107,7 @@ handle(Req, State) ->
 						{ok,Cisco79xx}=
 						case pp("model",P) of
 							"Cisco 7940"-> cisco7940:render([{number,pp("number",P)}]);
-							"Cisco 7942"-> cisco7940:render([{number,pp("number",P)}]);
+							"Cisco 7942"-> cisco7942:render([{number,pp("number",P)}]);
 							_->{ok,nodevice}
 						end,
 						io:format('~s~n',[lists:flatten(Cisco79xx)])	,
