@@ -110,9 +110,12 @@ handle(Req, State) ->
 							"Cisco 7942"-> cisco7942:render([{number,pp("number",P)}]);
 							_->{ok,nodevice}
 						end,
-						io:format('~s~n',[lists:flatten(Cisco79xx)])	,
 						Mac=string:to_upper(pp("macaddr",P)--":::::::"),
-						Filename="/tftpboot/SIP"++Mac++".cnf",
+						Filename=
+						case pp("model",P) of
+							"Cisco 7940"-> "/tftpboot/SIP"++Mac++".cnf";
+							"Cisco 7942"-> "/tftpboot/SEP"++Mac++".cnf.xml"
+						end,
 						io:format('[FILENAME]: ~s~n',[Filename]),
 						file:write_file(Filename,lists:flatten(Cisco79xx)),
 						%%TODO: унести базу маков в конфиг.
