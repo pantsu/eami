@@ -1,0 +1,31 @@
+phone_prompt:     "{{number}}"
+phone_label:      sipphone
+proxy_register:   1
+timer_register_expires: 40
+timer_invite_expires: 600
+directory_url:    https://{{sipproxy}}/ldap_directory/get_phones.xml
+messages_uri:     97
+timer_t1:         2000
+timer_t2:         8000
+
+nat_enable:       0
+nat_address:      UNPROVISIONED
+time_zone:        MSD
+phone_password:   "*97"
+dtmf_outofband:   avt_always
+telnet_level:	  2
+dtmf_inband:      1
+dtmf_db_level:    4
+dial_template:    25_dialplan
+
+line1_displayname:"{{number}}"
+line1_name:       {{number}}
+line1_shortname:  {{number}}
+line1_authname:   {{number}}
+line1_password:   {{number}}
+proxy_register:   1
+proxy1_address:   {{sipproxy}}
+proxy1_port:      5060
+
+outbound_proxy:   UNPROVISIONED
+

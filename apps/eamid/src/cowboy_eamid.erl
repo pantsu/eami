@@ -101,13 +101,10 @@ handle(Req, State) ->
                                                 list_to_binary("{\"action\":\"ok\"}")
                                         ;
 					"set_device"->
-						%%TODO:  унести генерацию темплейтов в супервизор
-						erlydtl:compile("/usr/local/unison/eamid/template/cisco7940.template", cisco7940),
-						erlydtl:compile("/usr/local/unison/eamid/template/cisco7942.template", cisco7942),
 						{ok,Cisco79xx}=
 						case pp("model",P) of
-							"Cisco 7940"-> cisco7940:render([{number,pp("number",P)}]);
-							"Cisco 7942"-> cisco7942:render([{number,pp("number",P)}]);
+							"Cisco 7940"-> cisco7940_dtl:render([{number,pp("number",P)}, {sipproxy,"77.77.77.77"}]);
+							"Cisco 7942"-> cisco7942_dtl:render([{number,pp("number",P)}, {sipproxy,"77.77.77.77"}]);
 							_->{ok,nodevice}
 						end,
 						Mac=string:to_upper(pp("macaddr",P)--":::::::"),

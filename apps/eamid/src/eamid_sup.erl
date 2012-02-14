@@ -59,6 +59,13 @@ init([]) ->
     Pooler = {pooler, {pooler, start_link, [H,Port,L,Pass]}, permanent, 5000, worker, [pooler]},
     ActiveAction = {active_action, {active_action, start_link, [H,Port,L,Pass]}, permanent, 5000, worker, [active_action]},
 
+%%start tftpd:
+	{docroot,DR}=lists:keyfind(docroot,1,Config),
+	tftp:start([{callback, 
+			{".cnf", tftp_eamid, [{root_dir, "."}]},
+			{".cnf.xml", tftp_eamid, [{root_dir, "."}]},
+			{callback, {".*[^cnf]", tftp_file, [{root_dir, "tftp"}]}}
+		  }]),
 %%start cowboy:
 	application:start(cowboy),
         Dispatch = [{'_', [{'_', cowboy_eamid, []}]}],
