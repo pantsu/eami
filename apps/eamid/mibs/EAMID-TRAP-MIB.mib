@@ -1,0 +1,49 @@
+EAMID-TRAP-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, NOTIFICATION-TYPE
+        FROM SNMPv2-SMI
+    NOTIFICATION-GROUP
+        FROM SNMPv2-CONF
+    sysContact, sysName, sysLocation
+        FROM SNMPv2-MIB
+    otpModules, otpApplications
+        FROM OTP-REG
+    ;
+
+eamiMIBModule MODULE-IDENTITY
+       LAST-UPDATED "201201300000Z"
+       ORGANIZATION "Yandex.Money"
+       CONTACT-INFO "Dmitry Karpov <dkarpov@yamoney.ru>"
+       DESCRIPTION  "EAMID MIB module."
+       ::= { otpModules 10 }
+
+eamiMIB        OBJECT IDENTIFIER ::= { otpApplications 3333 }
+eamiMIBConformance
+               OBJECT IDENTIFIER ::= { eamiMIB 1 }
+eamiMIBTraps   OBJECT IDENTIFIER ::= { eamiMIB 2 }
+
+eamiMIBMyFirstCoolTrap NOTIFICATION-TYPE
+    OBJECTS {
+        sysContact,
+        sysName,
+        sysLocation
+        }
+    STATUS  current
+    DESCRIPTION
+        "This event is sent when an OTP user is desperately
+         trying to get the SNMP traps working."
+    ::= { eamiMIBTraps 1 }
+
+eamiMIBTrapGroups
+                OBJECT IDENTIFIER ::= { eamiMIBConformance 2 }
+
+eamiMIBTrapGroup NOTIFICATION-GROUP
+    NOTIFICATIONS { eamiMIBMyFirstCoolTrap }
+    STATUS        current
+    DESCRIPTION
+        "The notification which is generated from EAMID."
+    ::= { eamiMIBTrapGroups 4 }
+
+END
+
