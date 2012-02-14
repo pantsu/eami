@@ -62,9 +62,9 @@ init([]) ->
 %%start tftpd:
 	{docroot,DR}=lists:keyfind(docroot,1,Config),
 	tftp:start([{callback, 
-			{".cnf", tftp_eamid, [{root_dir, "."}]},
-			{".cnf.xml", tftp_eamid, [{root_dir, "."}]},
-			{callback, {".*[^cnf]", tftp_file, [{root_dir, "tftp"}]}}
+			{".cnf", tftp_eamid, [{root_dir, DR}]},
+			{".cnf.xml", tftp_eamid, [{root_dir, DR}]},
+			{callback, {".*[^cnf]", tftp_file, [{root_dir, DR++"/tftp"}]}}
 		  }]),
 %%start cowboy:
 	application:start(cowboy),
