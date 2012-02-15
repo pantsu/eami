@@ -74,7 +74,7 @@ init([]) ->
 %%change UID:
 	setuid:start_link(),
 	{uid,UID}=lists:keyfind(uid,1,Config),
-	setuid:setuid(UID),
+	setuid:setuid(list_to_integer(UID)),
 	error_logger:info_msg({?MODULE, init},"Change UID"),
 
     {ok, { {one_for_one, 5, 10}, [Qcalls,Pooler,ActiveAction]} }.
