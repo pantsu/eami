@@ -60,12 +60,12 @@ init([]) ->
     ActiveAction = {active_action, {active_action, start_link, [H,Port,L,Pass]}, permanent, 5000, worker, [active_action]},
 
 %%start tftpd:
-	{docroot,DR}=lists:keyfind(docroot,1,Config),
-	tftp:start([{callback, 
-			{".cnf", tftp_eamid, [{root_dir, DR}]},
-			{".cnf.xml", tftp_eamid, [{root_dir, DR}]},
-			{callback, {".*[^cnf]", tftp_file, [{root_dir, DR++"/tftp"}]}}
-		  }]),
+	{tftproot,DR}=lists:keyfind(tftproot,1,Config),
+	tftp:start([
+			{callback, {".cnf", tftp_eamid, [{root_dir, DR}]}},
+			{callback, {".cnf.xml", tftp_eamid, [{root_dir, DR}]}},
+			{callback, {".*[^cnf]", tftp_file, [{root_dir, DR}]}}
+		  ]),
 %%start cowboy:
 	application:start(cowboy),
         Dispatch = [{'_', [{'_', cowboy_eamid, []}]}],
@@ -95,6 +95,7 @@ start_logger(Path)->
 default()->
  [
   {docroot,"."},
+  {tftproot,"/usr/local/unison/eamid/tftp"},
   {logdir,"/var/log/eamid"},
   {eamihost,"localhost"},
   {eamiport,"5038"},
