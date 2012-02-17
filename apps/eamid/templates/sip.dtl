@@ -1,0 +1,39 @@
+[general]
+context=anonymous
+allowoverlap=no
+bindport=5060
+srvlookup=yes
+rtpstart=5000
+rtpend=35565
+jbenable = yes 
+
+;external links pool
+{% for poolname,ip,port in pools %}
+[{{poolname}}] 
+type=friend 
+context=komm
+host={{ip}}
+disallow=all 
+allow=ulaw
+nat=no 
+canreinvite=no
+qualify=yes 
+port={{port}}
+
+{% endfor %}
+
+;sip clients
+{% for num,secret,username in numbers %}
+[{{num}}]
+type=friend
+secret={{secret}}
+allow=ulaw
+nat=no
+canreinvite=no
+context=komm
+host=dynamic
+username={{num}}
+callerid="{{username}}" <{{num}}>
+
+{% endfor %}
+
