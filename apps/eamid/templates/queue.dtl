@@ -1,0 +1,24 @@
+[general]
+persistentmembers = yes
+autofill = yes
+monitor-type = MixMonitor
+monitor-format = gsm
+monitor-type = MixMonitor
+
+
+{% for linename,numbers,strategy in queues %}
+[{{linename}}]
+music = default
+musicclass = default
+strategy = {{strategy}}
+timeout = 11
+wrapuptime=10
+announce-frequency = none
+announce-holdtime = no
+joinempty = yes
+{% for i in numbers%}
+member => SIP/{{i}}
+{% endfor %}
+
+{% endfor %}
+
