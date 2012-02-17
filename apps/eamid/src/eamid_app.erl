@@ -10,7 +10,7 @@
 %% ===================================================================
 
 start(_StartType, _StartArgs) ->
-    eamid_sup:start_link().
+    eamid_start:start_link().
 
 stop(_State) ->
     ok.

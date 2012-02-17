@@ -1,4 +1,3 @@
-
 -module(eamid_sup).
 
 -behaviour(supervisor).
@@ -25,85 +24,72 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
-	Argx=init:get_arguments(),
-	io:format('Confid reading...',[]),
-	Config=case lists:keyfind(conf,1,Argx) of
-		false->default();
-		{conf,Path}->
-			{ok,BinF} = file:read_file(Path),
-			F = binary_to_list(BinF),
-			FNormal = (F--string:copies("\t",length(F)))--string:copies(" ",length(F)),
-			FTokens = string:tokens(FNormal,"\n"),
-			FullConfig=[ case string:tokens(X,"=") of [P,V]-> {list_to_atom(string:to_lower(P)),V}; _->[] end  ||X <- FTokens],
-			validate_conf([ X ||{X,_} <- default()],FullConfig)
-	       end,
-	io:format(' Done.~n--->~n~w~n<---~n',[Config]),
 
-    %%если в конфиге указаны параметры логирования, то формируем строку запуска логера.
-	case lists:keyfind(logdir,1,Config) of
-		{logdir,Logdir}-> 
-			io:format('Starting logger. LogDir=~s~n',[Logdir]),
-			start_logger(Logdir);
+    %% starting application
+
+    %% start logger
+	case {config_srv:get_config(logger),config_srv:get_config(logdir)} of
+        {"on",Logdir}->
+            case file:read_file_info(Logdir) of
+                {ok,{file_info,_,directory,read_write,_,_,_,_,_,_,_,_,_,_}}-> 
+                           io:format('Starting logger. LogDir=~s~n',[Logdir]),
+                           Conf = log_mf_h:init(Logdir, 1024, 10),
+                           gen_event:add_handler(error_logger, log_mf_h, Conf),
+                           error_logger:info_msg({?MODULE, start_logger},"Start file logger");
+                {error,_}->none;
+                _->none
+            end;
 		_->none
 	end,
 
-    %%формируем параметры запуска хранилища очередей.
-    %%формируем параметры запуска для потока активных команд.
-    %%формируем параметры для запуска списка активных звонков.
-    Qcalls = {qcalls, {qcalls, start_link, []}, permanent, 5000, worker, [qcalls]},
-    %%формируем параметры для запуска парсера сообщений от астериска.
-    {eamihost,H}=lists:keyfind(eamihost,1,Config),
-    {eamiport,P}=lists:keyfind(eamiport,1,Config),Port=list_to_integer(P),
-    {eamilogin,L}=lists:keyfind(eamilogin,1,Config),
-    {eamipassword,Pass}=lists:keyfind(eamipassword,1,Config),
-    Pooler = {pooler, {pooler, start_link, [H,Port,L,Pass]}, permanent, 5000, worker, [pooler]},
-    ActiveAction = {active_action, {active_action, start_link, [H,Port,L,Pass]}, permanent, 5000, worker, [active_action]},
+    %% start tftpd:
+	case {config_srv:get_config(tftpd),config_srv:get_config(tftproot)} of
+    {"on",DR}->
+            tftp:start([
+			 {callback, {".cnf", tftp_eamid, [{root_dir, DR}]}},
+			 {callback, {".cnf.xml", tftp_eamid, [{root_dir, DR}]}},
+			 {callback, {".*[^cnf]", tftp_file, [{root_dir, DR}]}}
+            ]);
+    _->none
+    end,
 
-%%start tftpd:
-	{tftproot,DR}=lists:keyfind(tftproot,1,Config),
-	tftp:start([
-			{callback, {".cnf", tftp_eamid, [{root_dir, DR}]}},
-			{callback, {".cnf.xml", tftp_eamid, [{root_dir, DR}]}},
-			{callback, {".*[^cnf]", tftp_file, [{root_dir, DR}]}}
-		  ]),
-%%start cowboy:
-	application:start(cowboy),
+    %% start cowboy:
+	case {config_srv:get_config(webserver),config_srv:get_config(wwwport)} of
+    {"on", WWWPort}->
+        application:start(cowboy),
         Dispatch = [{'_', [{'_', cowboy_eamid, []}]}],
-	{wwwport,WWWPort}=lists:keyfind(wwwport,1,Config),
-	cowboy:start_listener(http, 100,cowboy_tcp_transport, [{port, list_to_integer(WWWPort)}],cowboy_http_protocol, [{dispatch, Dispatch}]),
-%%change UID:
-	setuid:start_link(),
-	{uid,UID}=lists:keyfind(uid,1,Config),
-	setuid:setuid(list_to_integer(UID)),
-	error_logger:info_msg({?MODULE, init},"Change UID"),
+        cowboy:start_listener(http, 100,cowboy_tcp_transport, [{port, list_to_integer(WWWPort)}],cowboy_http_protocol, [{dispatch, Dispatch}]);
+    _->none
+    end,
 
-    {ok, { {one_for_one, 5, 10}, [Qcalls,Pooler,ActiveAction]} }.
+    %% change UID:
+	case {config_srv:get_config(chroot),config_srv:get_config(uid)} of
+    {"ok", UID}->
+        setuid:start_link(),
+        setuid:setuid(list_to_integer(UID)),
+        error_logger:info_msg({?MODULE, init},"Change UID");
+    _->none
+    end,
 
-validate_conf([],List)->List;
-validate_conf([H|Param],List)->
-  case lists:member(H, [ X || {X,_} <- List]) of
-	false ->validate_conf(Param,List++ [lists:keyfind(H,1,default())] );
-  	_->validate_conf(Param,List)
-  end
-.
 
-start_logger(Path)->
-  Conf = log_mf_h:init(Path, 1024, 10),
-  gen_event:add_handler(error_logger, log_mf_h, Conf),
-  error_logger:info_msg({?MODULE, start_logger},"Start file logger").
+    %%gen_server parameters: 
+    GenSrv=lists:flatten(
+    [
+     {qcalls, {qcalls, start_link, []}, permanent, 5000, worker, [qcalls]},
 
-default()->
- [
-  {docroot,"."},
-  {tftproot,"/usr/local/unison/eamid/tftp"},
-  {logdir,"/var/log/eamid"},
-  {eamihost,"localhost"},
-  {eamiport,"5038"},
-  {eamilogin,""},
-  {eamipassword,""},
-  {wwwport,"8080"},
-  {uid,"33"}
- ]
-.
+     case config_srv:get_config(ami) of 
+     "on"->
+        H = config_srv:get_config(eamihost),
+        Port = list_to_integer( config_srv:get_config(eamiport) ),
+        L = config_srv:get_config(eamilogin),
+        Pass = config_srv:get_config(eamipassword),
+        [
+         {pooler, {pooler, start_link, [H,Port,L,Pass]}, permanent, 5000, worker, [pooler]},
+         {active_action, {active_action, start_link, [H,Port,L,Pass]}, permanent, 5000, worker, [active_action]}
+        ];
+     _-> []
+     end
+    ]),
 
+    {ok, { {one_for_one, 5, 10}, GenSrv} }.
 
