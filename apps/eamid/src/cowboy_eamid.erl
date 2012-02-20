@@ -57,7 +57,7 @@ Priority: 1
 call(error,_)->ok;
 call(_,error)->ok;
 call(From,To)->
-	%%TODO: унести template в темплейт для erlydtl
+	%%TODO: унести template в темплейт для erlydtl. Унести в activeAction as ring_callback
 	CText=io_lib:format('~s',[template(From,To)]),
 	Rnd="call_"++integer_to_list(random:uniform(9999999999)),
 	Filename="/tmp/"++ Rnd,
