@@ -117,15 +117,15 @@ handle(Req, State) ->
 					"set_device"->
 						{ok,Cisco79xx}=
 						case pp("model",P) of
-							"Cisco 7940"-> cisco7940_dtl:render([{number,pp("number",P)}, {sipproxy,"77.77.77.77"}]);
-							"Cisco 7942"-> cisco7942_dtl:render([{number,pp("number",P)}, {sipproxy,"77.77.77.77"}]);
+							"Cisco 7940"-> cisco7940_dtl:render([{number,pp("number",P)}, {sipproxy, config_srv:get_config(sipproxy)}]);
+							"Cisco 7942"-> cisco7942_dtl:render([{number,pp("number",P)}, {sipproxy, config_srv:get_config(sipproxy)}]);
 							_->{ok,nodevice}
 						end,
 						Mac=string:to_upper(pp("macaddr",P)--":::::::"),
 						Filename=
 						case pp("model",P) of
-							"Cisco 7940"-> "/tftpboot/SIP"++Mac++".cnf";
-							"Cisco 7942"-> "/tftpboot/SEP"++Mac++".cnf.xml"
+							"Cisco 7940"-> config_srv:get_config(tftproot)++"SIP"++Mac++".cnf";
+							"Cisco 7942"-> config_srv:get_config(tftproot)++"SEP"++Mac++".cnf.xml"
 						end,
 						io:format('[FILENAME]: ~s~n',[Filename]),
 						file:write_file(Filename,lists:flatten(Cisco79xx)),

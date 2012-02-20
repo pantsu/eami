@@ -103,6 +103,7 @@ update_config(Val)->
 default()->
  [
   {docroot,"."},
+  {sipproxy,"127.0.0.1"},
   {tftproot,"/usr/local/unison/eamid/tftp"},
   {asteriskconfig,"/usr/local/unison/etc/asterisk"},
   {logdir,"/var/log/eamid"},
