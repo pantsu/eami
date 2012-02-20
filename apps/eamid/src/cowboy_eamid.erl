@@ -69,7 +69,7 @@ call(From,To)->
 .
 
 write_config()->
-	{ok, SIP } =sip_dtl:render([{pools,config_srv:get_config(pools)},{numbers,config_srv:get_config(numbers)}]),
+	{ok, SIP} =sip_dtl:render([{pools,config_srv:get_config(pools)},{numbers,config_srv:get_config(numbers)}]),
 	{ok,QUEUE}=queue_dtl:render([{queues,config_srv:get_config(queues)}]),
 	{ok,EXTEN}=extensions_dtl:render([
 				{numbers,config_srv:get_config(numbers)},
@@ -151,18 +151,15 @@ handle(Req, State) ->
 						case pp("params",P) of
 						error->	list_to_binary("{\"action\":\"error\"}");
 						{struct,Val}-> 
-							io:format('[DEBUG]: update_config:~n ~w~n------~n',[Val]),
-							%%pools:
+							%%incoming_lines:
 							P1=lists:flatten([X||{"incoming_lines",{array,X}}<-Val]),
-							Pool=[{INCOMING_LINE,X}||{_,[{INCOMING_LINE,{_,X}}]}<-P1],
-							io:format('[DEBUG]: pools: ~w~n',[Pool]),
-							config_srv:update_config([{pools,Pool}]),
+							INCOMING=[{INCOMING_LINE,X}||{_,[{INCOMING_LINE,{_,X}}]}<-P1],
+							config_srv:update_config([{incoming_lines,INCOMING}]),
 							%%queues:
 							Q1=lists:flatten([X||{"queues",{array,X}}<-Val]),
 							Queues=[{Line,Strategy,Timeout,Num} ||  {_,[{Line,{_,[Strategy,Timeout,{_,Num}]}}]} <-Q1],
 							config_srv:update_config([{queues,Queues}]),
 
-							%%config_srv:update_config(Val),
 							%%write_config(),
 							list_to_binary("{\"action\":\"ok\"}")
 						end
