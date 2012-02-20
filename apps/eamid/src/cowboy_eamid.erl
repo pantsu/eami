@@ -78,7 +78,7 @@ write_config()->
 				   ]),
 	file:write_file("/tmp/sip.conf",SIP),
 	file:write_file("/tmp/queue.conf",QUEUE),
-	file:write_file("/tmp/exten.conf",EXTEN)
+	file:write_file("/tmp/exten.conf",EXTEN),
 	ok
 .
 
