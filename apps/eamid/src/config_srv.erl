@@ -11,7 +11,7 @@
 %% API Function Exports
 %% ------------------------------------------------------------------
 
--export([start_link/0, get_config/0, get_config/1, read_config/1,create_asterisk_config/0]).
+-export([start_link/0, get_config/0, get_config/1, read_config/1, update_config/1, create_asterisk_config/0]).
 
 %% ------------------------------------------------------------------
 %% gen_server Function Exports
@@ -35,14 +35,20 @@ init(_) ->
 
 handle_call(all, _From, Config) ->
   {reply, Config, Config};
-handle_call(Val, _From, Config) ->
+handle_call({get,Val}, _From, Config) ->
   {reply,
    case lists:keyfind(Val,1,Config) of
         false-> false;
         {Val,R}-> R;
         Other-> Other
    end,
-  Config}.
+  Config};
+handle_call({update_config,Val},_From,Config)->
+   io:format('[UPDATE]: ~w~n~w~n---~n',[Config,Val]),
+   NewConfig= validate_conf([ X ||{X,_} <- Config],Val),
+   io:format('[UPDATE]: ~w~n',[NewConfig]),
+   {reply,ok, NewConfig}
+.
 
 handle_cast(_Msg, Config) ->
   {noreply, Config}.
@@ -87,7 +93,12 @@ read_config(json)->ok.
 get_config()->
    gen_server:call(?MODULE,all).
 get_config(Val)->
-   gen_server:call(?MODULE,Val).
+   gen_server:call(?MODULE,{get,Val}).
+
+%% Val={"http",_Link} | {params, Val}
+update_config(Val)->
+   gen_server:call(?MODULE,{update_config,Val})
+.
 
 default()->
  [
@@ -107,9 +118,23 @@ default()->
   {chroot,"off"},
   {logger,"off"},
   {ami,"off"},
+
   %%asterisk parameters:
-  {queues,[{"line1",[001,002,003]},{"line2",[004,005,006]}]},
+  %%    {"action":"update_config","params":[
+  %%    	{"incoming_lines",[
+  %%    		{1192,["voice1","voice2","queue1","queue2","queue3","voice3"]},
+  %%    		{1193,[...]}]},
+  %%    	{"queues",[
+  %%    		{"queue1",[001,002,...]},
+  %%    		{...}
+  %%    	]},
+  %%            {numbers,[{001,"passwd1","user 001"}, {002,"passwd2","user 002"}]},
+  %%    	{"pools":[{"192.168.0.111",5060,"login","password"},{"192.168.0.112",5075,"",""},...]}
+  %%    ]}
+
+  {queues,[{"queue1",[001,002,003]},{"queue2",[004,005,006]}]},
   {numbers,[{001,"passwd1","user 001"}, {002,"passwd2","user 002"}]},
+  {"incoming_lines",[]},
   {pools,[]} 
  ]
 .

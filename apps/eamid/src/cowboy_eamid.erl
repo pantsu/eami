@@ -130,8 +130,12 @@ handle(Req, State) ->
 					;     
 					"chan_spy"->
 						catch spawn(pooler,chan_spy,[pp(channel,P),pp(number,P)]),
-						{html,"{\"action\":\"ok\"}"}
+						list_to_binary("{\"action\":\"ok\"}")
 						
+					;
+					"update_config"->
+
+						list_to_binary("{\"action\":\"ok\"}")
 					;
 					_-> <<"action unknown">>
 				end
