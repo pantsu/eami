@@ -69,9 +69,9 @@ call(From,To)->
 .
 
 write_config()->
-	SIP=sip_dtl:render([{pools,config_srv:get_config(pools)},{numbers,config_srv:get_config(numbers)}]),
-	QUEUE=queue_dtl:render([{queues,config_srv:get_config(queues)}]),
-	EXTEN=extensions_dtl:render([
+	{ok, SIP } =sip_dtl:render([{pools,config_srv:get_config(pools)},{numbers,config_srv:get_config(numbers)}]),
+	{ok,QUEUE}=queue_dtl:render([{queues,config_srv:get_config(queues)}]),
+	{ok,EXTEN}=extensions_dtl:render([
 				{numbers,config_srv:get_config(numbers)},
 				{lines,[ Name || {Name,_,_,_} <-config_srv:get_config(queues)]}
 				   ]),
