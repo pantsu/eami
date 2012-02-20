@@ -68,7 +68,6 @@ call(From,To)->
 	file:rename(Filename,SpoolOut)
 .
 
-%% Сохраняем конфиги в файло и передергиваем астериск.
 write_config()->
 	SIP=sip_dtl:render([{pools,config_srv:get_config(pools)},{numbers,config_srv:get_config(numbers)}]),
 	QUEUE=queue_dtl:render([{queues,config_srv:get_config(queues)}]),
@@ -76,9 +75,10 @@ write_config()->
 				{numbers,config_srv:get_config(numbers)},
 				{lines,[ Name || {Name,_,_,_} <-config_srv:get_config(queues)]}
 				   ]),
-	file:write_file("/tmp/sip.conf",SIP),
-	file:write_file("/tmp/queue.conf",QUEUE),
-	file:write_file("/tmp/exten.conf",EXTEN),
+	file:write_file(config_srv:get_config(asteriskconfig)++"/sip.conf",SIP),
+	file:write_file(config_srv:get_config(asteriskconfig)++"/queue.conf",QUEUE),
+	file:write_file(config_srv:get_config(asteriskconfig)++"/exten.conf",EXTEN),
+	%%TODO: add asterisk reload
 	ok
 .
 
