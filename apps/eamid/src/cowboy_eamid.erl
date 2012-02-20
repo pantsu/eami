@@ -68,6 +68,20 @@ call(From,To)->
 	file:rename(Filename,SpoolOut)
 .
 
+%% Сохраняем конфиги в файло и передергиваем астериск.
+write_config()->
+	SIP=sip_dtl:render([{pools,config_srv:get_config(pools)},{numbers,config_srv:get_config(numbers)}]),
+	QUEUE=queue_dtl:render([{queues,config_srv:get_config(queues)}]),
+	EXTEN=extensions_dtl:render([
+				{numbers,config_srv:get_config(numbers)},
+				{lines,[ Name || {Name,_,_,_} <-config_srv:get_config(queues)]}
+				   ]),
+	file:write_file("/tmp/sip.conf",SIP),
+	file:write_file("/tmp/queue.conf",QUEUE),
+	file:write_file("/tmp/exten.conf",EXTEN)
+	ok
+.
+
 init({tcp, http}, Req, Opts) ->
     {ok, Req, undefined_state}.
 
@@ -134,8 +148,13 @@ handle(Req, State) ->
 						
 					;
 					"update_config"->
-
-						list_to_binary("{\"action\":\"ok\"}")
+						case pp(params,P) of
+						error->	list_to_binary("{\"action\":\"error\"}");
+						Val-> 
+							config_srv:update_config(Val),
+							write_config(),
+							list_to_binary("{\"action\":\"ok\"}")
+						end
 					;
 					_-> <<"action unknown">>
 				end

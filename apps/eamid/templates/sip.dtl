@@ -8,7 +8,7 @@ rtpend=35565
 jbenable = yes 
 
 ;external links pool
-{% for poolname,ip,port in pools %}
+{% for poolname,ip,port,login,password in pools %}
 [{{poolname}}] 
 type=friend 
 context=komm

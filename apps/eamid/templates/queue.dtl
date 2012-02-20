@@ -6,12 +6,12 @@ monitor-format = gsm
 monitor-type = MixMonitor
 
 
-{% for linename,numbers,strategy in queues %}
+{% for linename,strategy,timeout,numbers in queues %}
 [{{linename}}]
 music = default
 musicclass = default
 strategy = {{strategy}}
-timeout = 11
+timeout = {{timeout}}
 wrapuptime=10
 announce-frequency = none
 announce-holdtime = no

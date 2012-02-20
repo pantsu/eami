@@ -129,10 +129,10 @@ default()->
   %%    		{...}
   %%    	]},
   %%            {numbers,[{001,"passwd1","user 001"}, {002,"passwd2","user 002"}]},
-  %%    	{"pools":[{"192.168.0.111",5060,"login","password"},{"192.168.0.112",5075,"",""},...]}
+  %%    	{"pools":[{"pool1","192.168.0.111",5060,"login","password"},{"pool2","192.168.0.112",5075,"",""},...]}
   %%    ]}
 
-  {queues,[{"queue1",[001,002,003]},{"queue2",[004,005,006]}]},
+  {queues,[{"pool1","queue1","all",11,[001,002,003]},{"pool2","queue2","all",120,[004,005,006]}]},
   {numbers,[{001,"passwd1","user 001"}, {002,"passwd2","user 002"}]},
   {"incoming_lines",[]},
   {pools,[]} 
