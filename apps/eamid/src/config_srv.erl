@@ -44,9 +44,7 @@ handle_call({get,Val}, _From, Config) ->
    end,
   Config};
 handle_call({update_config,Val},_From,Config)->
-   io:format('[UPDATE]: ~w~n~w~n---~n',[Config,Val]),
-   NewConfig= validate_conf([ X ||{X,_} <- Config],Val),
-   io:format('[UPDATE]: ~w~n',[NewConfig]),
+   NewConfig= validate_conf([ X ||{X,_} <- Config],Val,Config),
    {reply,ok, NewConfig}
 .
 
@@ -82,7 +80,7 @@ read_config(file)->
 			FNormal = (F--string:copies("\t",length(F)))--string:copies(" ",length(F)),
 			FTokens = string:tokens(FNormal,"\n"),
 			FullConfig=[ case string:tokens(X,"=") of [P,V]-> {list_to_atom(string:to_lower(P)),V}; _->[] end  ||X <- FTokens],
-			validate_conf([ X ||{X,_} <- default()],FullConfig)
+			validate_conf([ X ||{X,_} <- default()],FullConfig,default())
 	       end,
   io:format(' Done.~n--->~n~w~n<---~n',[Config]),
   Config
@@ -135,16 +133,16 @@ default()->
 
   {queues,[{"pool1","queue1","all",11,[001,002,003]},{"pool2","queue2","all",120,[004,005,006]}]},
   {numbers,[{001,"passwd1","user 001"}, {002,"passwd2","user 002"}]},
-  {"incoming_lines",[]},
+  {incoming_lines,[]},
   {pools,[]} 
  ]
 .
 
-validate_conf([],List)->List;
-validate_conf([H|Param],List)->
+validate_conf([],List,_)->List;
+validate_conf([H|Param],List,Template)->
   case lists:member(H, [ X || {X,_} <- List]) of
-	false ->validate_conf(Param,List++ [lists:keyfind(H,1,default())] );
-  	_->validate_conf(Param,List)
+	false ->validate_conf(Param,List++ [lists:keyfind(H,1,Template)],Template );
+  	_->validate_conf(Param,List,Template)
   end
 .
 

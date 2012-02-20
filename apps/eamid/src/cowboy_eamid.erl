@@ -124,8 +124,8 @@ handle(Req, State) ->
 						Mac=string:to_upper(pp("macaddr",P)--":::::::"),
 						Filename=
 						case pp("model",P) of
-							"Cisco 7940"-> config_srv:get_config(tftproot)++"SIP"++Mac++".cnf";
-							"Cisco 7942"-> config_srv:get_config(tftproot)++"SEP"++Mac++".cnf.xml"
+							"Cisco 7940"-> config_srv:get_config(tftproot)++"/SIP"++Mac++".cnf";
+							"Cisco 7942"-> config_srv:get_config(tftproot)++"/SEP"++Mac++".cnf.xml"
 						end,
 						io:format('[FILENAME]: ~s~n',[Filename]),
 						file:write_file(Filename,lists:flatten(Cisco79xx)),
@@ -148,11 +148,22 @@ handle(Req, State) ->
 						
 					;
 					"update_config"->
-						case pp(params,P) of
+						case pp("params",P) of
 						error->	list_to_binary("{\"action\":\"error\"}");
-						Val-> 
-							config_srv:update_config(Val),
-							write_config(),
+						{struct,Val}-> 
+							io:format('[DEBUG]: update_config:~n ~w~n------~n',[Val]),
+							%%pools:
+							P1=lists:flatten([X||{"incoming_lines",{array,X}}<-Val]),
+							Pool=[{INCOMING_LINE,X}||{_,[{INCOMING_LINE,{_,X}}]}<-P1],
+							io:format('[DEBUG]: pools: ~w~n',[Pool]),
+							config_srv:update_config([{pools,Pool}]),
+							%%queues:
+							Q1=lists:flatten([X||{"queues",{array,X}}<-Val]),
+							Queues=[{Line,Strategy,Timeout,Num} ||  {_,[{Line,{_,[Strategy,Timeout,{_,Num}]}}]} <-Q1],
+							config_srv:update_config([{queues,Queues}]),
+
+							%%config_srv:update_config(Val),
+							%%write_config(),
 							list_to_binary("{\"action\":\"ok\"}")
 						end
 					;
