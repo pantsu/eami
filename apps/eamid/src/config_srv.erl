@@ -67,8 +67,8 @@ code_change(_OldVsn, Config, _Extra) ->
 get_nqueues(Num)->
 	%%{"queue1","all",11,[001,002,003]}
 	[ case lists:members(Num, Number) of 
-            false-> [] 
-            true-> Queue ; 
+            false-> [] ;
+            true-> Queue
           end ||{Queus,_,_,Numbers}<- get_config(queues)]
 .
 
