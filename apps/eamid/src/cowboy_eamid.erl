@@ -41,7 +41,7 @@ union([H|Tail])->
 .
 freecall()->
 	[ [{'Channel',X#newchannel.channel},{'CallerIDNum',X#newchannel.calleridnum},{'Uniqueid',X#newchannel.uniqueid},{'Link',"None"},{'TimeStart',X#newchannel.date}] 
-		|| X <- qcalls:get(), X#newchannel.link=:=none]
+		|| X <- qcalls:get(), X#newchannel.link=:=none, config_srv:is_lnumber(X#newchannel.calleridnum)]
 .
 
 template(From,To)->
