@@ -159,6 +159,9 @@ handle(Req, State) ->
 							Q1=lists:flatten([X||{"queues",{array,X}}<-Val]),
 							Queues=[{Line,Strategy,Timeout,Num} ||  {_,[{Line,{_,[Strategy,Timeout,{_,Num}]}}]} <-Q1],
 							config_srv:update_config([{queues,Queues}]),
+							%%pools:
+							
+							%%sip:
 
 							%%write_config(),
 							list_to_binary("{\"action\":\"ok\"}")

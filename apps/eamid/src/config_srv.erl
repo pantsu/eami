@@ -11,7 +11,7 @@
 %% API Function Exports
 %% ------------------------------------------------------------------
 
--export([start_link/0, get_config/0, get_config/1, read_config/1, update_config/1, create_asterisk_config/0]).
+-export([start_link/0, get_config/0, get_config/1, read_config/1, update_config/1, create_asterisk_config/0, is_lnumber/1]).
 
 %% ------------------------------------------------------------------
 %% gen_server Function Exports
@@ -63,6 +63,16 @@ code_change(_OldVsn, Config, _Extra) ->
 %% ------------------------------------------------------------------
 %% Internal Function Definitions
 %% ------------------------------------------------------------------
+
+is_lnumber(Num) when is_number(Num)->
+	case [ ok || {Number, Password, Fio} <-  get_config(numbers)] of
+	[]-> false;
+	_-> true
+	end
+;
+is_lnumber(Num) when is_number(Num)->
+	list_to_integer(Num)
+.
 
 create_asterisk_config()->
    {ok,SIP}=sip_dtl:render([{numbers,get_config(numbers)}]),
