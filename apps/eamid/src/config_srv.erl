@@ -11,7 +11,7 @@
 %% API Function Exports
 %% ------------------------------------------------------------------
 
--export([start_link/0, get_config/0, get_config/1, read_config/1, update_config/1, create_asterisk_config/0, is_lnumber/1]).
+-export([start_link/0, get_config/0, get_config/1, read_config/1, update_config/1, create_asterisk_config/0, is_lnumber/1, get_nqueues/1]).
 
 %% ------------------------------------------------------------------
 %% gen_server Function Exports
@@ -64,13 +64,21 @@ code_change(_OldVsn, Config, _Extra) ->
 %% Internal Function Definitions
 %% ------------------------------------------------------------------
 
+get_nqueues(Num)->
+	%%{"queue1","all",11,[001,002,003]}
+	[ case lists:members(Num, Number) of 
+            false-> [] 
+            true-> Queue ; 
+          end ||{Queus,_,_,Numbers}<- get_config(queues)]
+.
+
 is_lnumber(Num) when is_number(Num)->
 	case [ ok || {Number, Password, Fio} <-  get_config(numbers)] of
 	[]-> false;
 	_-> true
 	end
 ;
-is_lnumber(Num) when is_number(Num)->
+is_lnumber(Num) when is_list(Num)->
 	list_to_integer(Num)
 .
 
@@ -141,7 +149,7 @@ default()->
   %%    	{"pools":[{"pool1","192.168.0.111",5060,"login","password"},{"pool2","192.168.0.112",5075,"",""},...]}
   %%    ]}
 
-  {queues,[{"pool1","queue1","all",11,[001,002,003]},{"pool2","queue2","all",120,[004,005,006]}]},
+  {queues,[{"queue1","all",11,[001,002,003]},{"queue2","all",120,[004,005,006]}]},
   {numbers,[{001,"passwd1","user 001"}, {002,"passwd2","user 002"}]},
   {incoming_lines,[]},
   {pools,[]} 
