@@ -66,10 +66,10 @@ code_change(_OldVsn, Config, _Extra) ->
 
 get_nqueues(Num)->
 	%%{"queue1","all",11,[001,002,003]}
-	[ case lists:members(Num, Number) of 
+	[ case lists:members(Num, Numbers) of 
             false-> [] ;
             true-> Queue
-          end ||{Queus,_,_,Numbers}<- get_config(queues)]
+          end ||{Queue,_,_,Numbers}<- get_config(queues)]
 .
 
 is_lnumber(Num) when is_number(Num)->
