@@ -259,7 +259,8 @@ pooler(Newchannel,Socket)->
 						channel		=pp(channel2,Other),
 						link		=none
 					}),
-					active_action:queueadd(all,pp(channel2,Other))
+					active_action:queueadd(all,(qcalls:get(pp(channel1,Other)))#newchannel.calleridname),
+					active_action:queueadd(all,(qcalls:get(pp(channel2,Other)))#newchannel.calleridname)
 
 				;
 				"Hangup"->
