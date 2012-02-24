@@ -114,7 +114,8 @@ callback(From,To)->
 
 
 queueadd(all, Number)->
-    [ queueadd(Number,Queue) || {Queue,_,_,Numbers} <- config_srv:get_config(queues), lists:member(Number,Numbers)]
+    error_logger:info_msg({?MODULE,queueadd},"Active action QUEUEADD. Interface: "++Number),
+    [ queueadd(Queue, Number) || {Queue,_,_,Numbers} <- config_srv:get_config(queues), lists:member(Number,Numbers)]
 ;
 queueadd(Queue, Number)->
     error_logger:info_msg({?MODULE,queueadd},"Active action QUEUEADD. Channel: "++Queue++" . Interface: "++Number),
@@ -122,7 +123,8 @@ queueadd(Queue, Number)->
 .
 
 queueremove(all, Number)->
-    [ queueremove(Number,Queue) || {Queue,_,_,Numbers} <- config_srv:get_config(queues), lists:member(Number,Numbers)]
+    error_logger:info_msg({?MODULE,queueadd},"Active action QUEUEREMOVE. Interface: "++Number),
+    [ queueremove(Queue,Number) || {Queue,_,_,Numbers} <- config_srv:get_config(queues), lists:member(Number,Numbers)]
 ;
 queueremove(Queue, Number)->
     error_logger:info_msg({?MODULE,queueremove},"Active action QUEUEREMOVE. Channel: "++Queue++" . Interface: "++Number),

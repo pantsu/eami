@@ -278,7 +278,8 @@ pooler(Newchannel,Socket)->
 						channel		=pp(channel2,Other),
 						link		=pp(channel1,Other)
 					}),
-					active_action:queueremove(all,pp(channel2,Other))
+					active_action:queueremove(all,(qcalls:get(pp(channel1,Other)))#newchannel.calleridname),
+					active_action:queueremove(all,(qcalls:get(pp(channel2,Other)))#newchannel.calleridname)
 				;
 				"Rename"->
 					error_logger:info_msg({?MODULE,pooler},"Rename channel. Old name "++pp(oldname,Other)++" , new name: "++pp(newname,Other)),
