@@ -42,12 +42,13 @@ handle_call({get,Val}, _From, Config) ->
         {Val,R}-> R;
         Other-> Other
    end,
-  Config};
-handle_call({update_config,Val},_From,Config)->
-   NewConfig= validate_conf([ X ||{X,_} <- Config],Val,Config),
-   {reply,ok, NewConfig}
+  Config}
 .
 
+handle_cast({update_config,Val},_From,Config)->
+   NewConfig= validate_conf([ X ||{X,_} <- Config],Val,Config),
+   {reply,ok, NewConfig}
+;
 handle_cast(_Msg, Config) ->
   {noreply, Config}.
 
@@ -128,7 +129,16 @@ get_config(Val)->
 
 %% Val={"http",_Link} | {params, Val}
 update_config(Val)->
-   gen_server:call(?MODULE,{update_config,Val})
+   QueueOld=get_config(queues),
+   gen_server:cast(?MODULE,{update_config,Val}),
+   QueueNew=get_config(queues),
+   case QueueNew =:= QueueOld of
+   true->ok;
+   false->
+      %%TODO: create callback active_action:...
+      active_action:blsbls()
+      ok
+   end
 .
 
 default()->
