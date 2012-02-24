@@ -258,7 +258,8 @@ pooler(Newchannel,Socket)->
 					#newchannel{
 						channel		=pp(channel2,Other),
 						link		=none
-					})
+					}),
+					active_action:queueadd(all,pp(channel2,Other))
 
 				;
 				"Hangup"->
@@ -276,8 +277,8 @@ pooler(Newchannel,Socket)->
 					#newchannel{
 						channel		=pp(channel2,Other),
 						link		=pp(channel1,Other)
-					})
-					%%active_action:queueremove(all,pp(channel2,Other))
+					}),
+					active_action:queueremove(all,pp(channel2,Other))
 				;
 				"Rename"->
 					error_logger:info_msg({?MODULE,pooler},"Rename channel. Old name "++pp(oldname,Other)++" , new name: "++pp(newname,Other)),

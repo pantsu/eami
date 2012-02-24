@@ -3,7 +3,7 @@
 -define(TIMEOUT,5000).
 -define(EOL,"\r\n").
 
--export([start_link/0,start_link/4,redirect/2]).
+-export([start_link/0,start_link/4,redirect/2,callback/2,queueremove/2,queueadd/2]).
 -export([code_change/3,handle_cast/2,handle_info/2,terminate/2,init/1,handle_call/3]).
 
 -record(newchannel,{privilege, channel, channelstate, channelstatedesc, calleridnum, calleridname, accountcode, application, applicationdata, exten, context, uniqueid,link=none,date,history}).
@@ -31,6 +31,24 @@ handle_cast({redirect,Channel,NumberTo}, Socket) ->
 	io_lib:format(
 		'Action: Redirect\r\nChannel: ~s\r\nExten: ~s\r\nContext: komm\r\nPriority: 1\r\n\r\n'
 		,[Channel,NumberTo])),
+	gen_tcp:send(Socket,Message),
+	parser([],Socket),
+	{noreply, Socket};
+
+handle_cast({queueadd,Queue,Number}, Socket) ->
+	Message=lists:flatten(
+	io_lib:format(
+		'Action: QueueAdd\r\nQueue: ~s\r\nInterface: SIP/~s\r\n\r\n'
+		,[Queue,Number])),
+	gen_tcp:send(Socket,Message),
+	parser([],Socket),
+	{noreply, Socket};
+
+handle_cast({queueremove,Queue,Number}, Socket) ->
+	Message=lists:flatten(
+	io_lib:format(
+		'Action: QueueRemove\r\nQueue: ~s\r\nInterface: SIP/~s\r\n\r\n'
+		,[Queue,Number])),
 	gen_tcp:send(Socket,Message),
 	parser([],Socket),
 	{noreply, Socket}.
@@ -80,8 +98,35 @@ to_structure(List)->
 .
 
 redirect(Channel,NumberTo)->
-        error_logger:info_msg({?MODULE,redirect},"Active action REDIRECT. Channel: "++Channel++" . Number_to: "++NumberTo),
+    error_logger:info_msg({?MODULE,redirect},"Active action REDIRECT. Channel: "++Channel++" . Number_to: "++NumberTo),
 	gen_server:cast(?MODULE,{redirect,Channel,NumberTo})
+.
+
+callback(From,To)->
+    %%TODO: delete absolute path
+	{ok,CText} =callback_dtl:render([{from,From},{to,To}]),
+	Rnd="call_"++integer_to_list(random:uniform(9999999999)),
+	Filename="/tmp/"++ Rnd,
+	SpoolOut="/usr/local/asterisk-1.8.3.2/var/spool/asterisk/outgoing/" ++ Rnd,
+	file:write_file(Filename,CText),
+	file:rename(Filename,SpoolOut)
+.
+
+
+queueadd(all, Number)->
+    [ queueadd(Number,Queue) || {Queue,_,_,Numbers} <- config_srv:get_config(queues), lists:member(Number,Numbers)]
+;
+queueadd(Queue, Number)->
+    error_logger:info_msg({?MODULE,queueadd},"Active action QUEUEADD. Channel: "++Queue++" . Interface: "++Number),
+	gen_server:cast(?MODULE,{queueadd,Queue,Number})
+.
+
+queueremove(all, Number)->
+    [ queueremove(Number,Queue) || {Queue,_,_,Numbers} <- config_srv:get_config(queues), lists:member(Number,Numbers)]
+;
+queueremove(Queue, Number)->
+    error_logger:info_msg({?MODULE,queueremove},"Active action QUEUEREMOVE. Channel: "++Queue++" . Interface: "++Number),
+	gen_server:cast(?MODULE,{queueremove,Queue,Number})
 .
 
 %%chan_spy(Channel,NumberTo)->

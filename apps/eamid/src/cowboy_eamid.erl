@@ -9,20 +9,6 @@ pp(P,List)->
                 _->error
         end
 .
-bd()->
-[
-{"04C5A4B1C802","109.235.162.252"},
-{"B8BEBF22A804","109.235.162.250"},
-{"B8BEBF2316F8","109.235.162.249"},
-{"B8BEBF2264E3","109.235.162.253"},
-{"00215553447A","109.235.162.248"},
-{"001FCAE80223","109.235.162.247"},
-{"001E4AF2E16F","109.235.162.245"},
-{"001E4AF255AF","109.235.162.246"},
-{"081FF3636EBF","109.235.162.254"},
-{"B8BEBF22ACBE","111.111.111.111"}
-]
-.
 
 union([])->[];
 union([H|Tail])->
@@ -44,29 +30,9 @@ freecall()->
 		|| X <- qcalls:get(), X#newchannel.link=:=none, config_srv:is_lnumber(X#newchannel.calleridnum)]
 .
 
-template(From,To)->
-io_lib:format('Channel: SIP/callman61/~s
-Callerid: ~s
-MaxRetries: 0
-RetryTime: 300
-WaitTime: 45
-Context: komm
-Extension: ~s
-Priority: 1
-',[To,From,From]).
 call(error,_)->ok;
 call(_,error)->ok;
-call(From,To)->
-	%%TODO: унести template в темплейт для erlydtl. Унести в activeAction as ring_callback
-	CText=io_lib:format('~s',[template(From,To)]),
-	Rnd="call_"++integer_to_list(random:uniform(9999999999)),
-	Filename="/tmp/"++ Rnd,
-	SpoolOut="/usr/local/asterisk-1.8.3.2/var/spool/asterisk/outgoing/" ++ Rnd,
-	{ok,S}=file:open(Filename,write),
-	file:write(S,CText),
-	file:close(S),
-	file:rename(Filename,SpoolOut)
-.
+call(From,To)-> active_action:callback(From,To).
 
 write_config()->
 	{ok, SIP} =sip_dtl:render([{pools,config_srv:get_config(pools)},{numbers,config_srv:get_config(numbers)}]),
@@ -77,7 +43,7 @@ write_config()->
 				   ]),
 	file:write_file(config_srv:get_config(asteriskconfig)++"/sip.conf",SIP),
 	file:write_file(config_srv:get_config(asteriskconfig)++"/queue.conf",QUEUE),
-	file:write_file(config_srv:get_config(asteriskconfig)++"/exten.conf",EXTEN),
+	file:write_file(config_srv:get_config(asteriskconfig)++"/extensions.conf",EXTEN),
 	%%TODO: add asterisk reload
 	ok
 .
@@ -109,7 +75,7 @@ handle(Req, State) ->
 						call(pp("from",P),pp("to",P)),
                                                 list_to_binary("{\"action\":\"ok\"}")
 					;
-                                        "redirect"->
+                    "redirect"->
 						%%{"action":"redirect","channel":"_CHANEL","number":"66666"}
                                                 active_action:redirect(pp("channel",P),pp("number",P)),
                                                 list_to_binary("{\"action\":\"ok\"}")
@@ -129,14 +95,12 @@ handle(Req, State) ->
 						end,
 						io:format('[FILENAME]: ~s~n',[Filename]),
 						file:write_file(Filename,lists:flatten(Cisco79xx)),
-						%%TODO: унести базу маков в конфиг.
-						io:format('[IPPHONE]:~s  ~s~n~w~n',[ Mac,pp(Mac,bd()),bd()]),
 						case pp("model",P) of
 							"Cisco 7940"-> 
-								catch spawn(os,cmd,["/usr/local/unison/eamid/template/cisco7940.expect "++pp(Mac,bd())])
+								catch spawn(os,cmd,["/usr/local/unison/eamid/template/cisco7940.expect "++config_srv:get_ipclients(Mac)])
 							;
 							"Cisco 7942"-> 
-								catch spawn(os,cmd,["/usr/local/unison/eamid/template/cisco7942.expect "++pp(Mac,bd())])
+								catch spawn(os,cmd,["/usr/local/unison/eamid/template/cisco7942.expect "++config_srv:get_ipclients(Mac)])
 							;
 							_->{ok,nodevice}
 						end,

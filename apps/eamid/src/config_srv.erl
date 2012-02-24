@@ -64,6 +64,10 @@ code_change(_OldVsn, Config, _Extra) ->
 %% Internal Function Definitions
 %% ------------------------------------------------------------------
 
+get_ipclients(Mac)->
+    [ {IP,Model}  || {M,IP,Model} <- get_config(ip_clients), M=:=Mac  ]
+.
+
 get_nqueues(Num)->
 	%%{"queue1","all",11,[001,002,003]}
 	[ case lists:members(Num, Numbers) of 
@@ -87,6 +91,13 @@ create_asterisk_config()->
    SIP
 .
 
+ip_clients(IPClient)->
+    case string:tokens(IPClient, "/") of
+        [IP,Mac,Model]-> IP;
+        _->[]
+    end
+.
+
 read_config(file)->
    Argx=init:get_arguments(),
    io:format('Confid reading...',[]),
@@ -97,11 +108,15 @@ read_config(file)->
 			F = binary_to_list(BinF),
 			FNormal = (F--string:copies("\t",length(F)))--string:copies(" ",length(F)),
 			FTokens = string:tokens(FNormal,"\n"),
-			FullConfig=[ case string:tokens(X,"=") of [P,V]-> {list_to_atom(string:to_lower(P)),V}; _->[] end  ||X <- FTokens],
+			AllConfig=[ case string:tokens(X,"=") of [P,V]-> {list_to_atom(string:to_lower(P)),V}; _->[] end  ||X <- FTokens],
+
+            IPClient= [{ip_clients, lists:flatten([ ip_clients(Y)  || {X,Y}<-AllConfig, X=:= ip_clients ])}], 
+            NOIPClient=[ {X,Y} || {X,Y}<-AllConfig, X /= ip_clients ],
+            FullConfig= NOIPClient++IPClient,
 			validate_conf([ X ||{X,_} <- default()],FullConfig,default())
 	       end,
-  io:format(' Done.~n--->~n~w~n<---~n',[Config]),
-  Config
+   io:format(' Done.~n--->~n~w~n<---~n',[Config]),
+   Config
 ;
 read_config(http)->ok;
 read_config(json)->ok.
@@ -152,7 +167,9 @@ default()->
   {queues,[{"queue1","all",11,[001,002,003]},{"queue2","all",120,[004,005,006]}]},
   {numbers,[{001,"passwd1","user 001"}, {002,"passwd2","user 002"}]},
   {incoming_lines,[]},
-  {pools,[]} 
+  {pools,[]},
+  {ip_clients,[]} 
+  %% {ip_clients,[{"192.168.0.2","04C5A4B1C802","Cisco 7940"}]} 
  ]
 .
 
