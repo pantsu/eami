@@ -147,7 +147,7 @@ set_device(P)->
 		"Cisco7940"-> 
 			catch spawn(os,cmd,["/usr/local/unison/eamid/template/cisco7940.expect "++Ip])
 		;
-		"Cisco7942"}-> 
+		"Cisco7942"-> 
 			catch spawn(os,cmd,["/usr/local/unison/eamid/template/cisco7942.expect "++Ip])
 		;
 		_->{ok,nodevice}
