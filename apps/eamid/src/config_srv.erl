@@ -114,7 +114,7 @@ is_lnumber(Num) when is_number(Num)->
 	end
 ;
 is_lnumber(Num) when is_list(Num)->
-	is_number(list_to_integer(Num))
+	is_lnumber(list_to_integer(Num))
 .
 
 create_asterisk_config()->
