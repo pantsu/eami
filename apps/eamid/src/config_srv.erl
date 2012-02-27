@@ -11,7 +11,7 @@
 %% API Function Exports
 %% ------------------------------------------------------------------
 
--export([start_link/0, get_config/0, get_config/1, read_config/1, update_config/1, create_asterisk_config/0, is_lnumber/1, get_nqueues/1]).
+-export([start_link/0, get_config/0, get_config/1, read_config/1, update_config/1, update_config_reload/1, create_asterisk_config/0, is_lnumber/1, get_nqueues/1, write_config/0]).
 
 %% ------------------------------------------------------------------
 %% gen_server Function Exports
@@ -36,19 +36,28 @@ init(_) ->
 handle_call(all, _From, Config) ->
   {reply, Config, Config};
 handle_call({get,Val}, _From, Config) ->
-  {reply,
-   case lists:keyfind(Val,1,Config) of
-        false-> false;
-        {Val,R}-> R;
-        Other-> Other
-   end,
-  Config}
-.
-
-handle_cast({update_config,Val},_From,Config)->
+  {reply, pp(Val,Config), Config}
+;
+handle_call({update_config,Val},_From,Config)->
    NewConfig= validate_conf([ X ||{X,_} <- Config],Val,Config),
    {reply,ok, NewConfig}
 ;
+handle_call({update_config_reload,Val},_From,Config)->
+   NewConfig= validate_conf([ X ||{X,_} <- Config],Val,Config),
+   OldQueue=pp(queues,Config),
+   NewQueue=pp(queues,NewConfig),
+   case OldQueue=:=NewQueue of
+    true->true;
+    _->
+     %TODO: add new lines in queue.conf
+
+
+     %%callback
+       [ [ active_action:queueremove(Queue,Number) || Number <- Numbers] || {Queue,_,_,Numbers} <- OldQueue],
+       [ [ active_action:queueadd(Queue,Number) || Number <- Numbers] || {Queue,_,_,Numbers} <- NewQueue]
+   end,
+   {reply,ok, NewConfig}
+.
 handle_cast(_Msg, Config) ->
   {noreply, Config}.
 
@@ -64,6 +73,27 @@ code_change(_OldVsn, Config, _Extra) ->
 %% ------------------------------------------------------------------
 %% Internal Function Definitions
 %% ------------------------------------------------------------------
+write_config()->
+	{ok, SIP} =sip_dtl:render([{pools,config_srv:get_config(pools)},{numbers,config_srv:get_config(numbers)}]),
+	{ok,QUEUE}=queue_dtl:render([{queues,config_srv:get_config(queues)}]),
+	{ok,EXTEN}=extensions_dtl:render([
+				{numbers,config_srv:get_config(numbers)},
+				{lines,[ Name || {Name,_,_,_} <-config_srv:get_config(queues)]}
+				   ]),
+	file:write_file(config_srv:get_config(asteriskconfig)++"/sip.conf",SIP),
+	file:write_file(config_srv:get_config(asteriskconfig)++"/queue.conf",QUEUE),
+	file:write_file(config_srv:get_config(asteriskconfig)++"/extensions.conf",EXTEN),
+	%%TODO: add asterisk reload
+	ok
+.
+
+pp(Val,Config)->
+   case lists:keyfind(Val,1,Config) of
+        false-> false;
+        {Val,R}-> R;
+        Other-> Other
+   end
+.
 
 get_ipclients(Mac)->
     [ {IP,Model}  || {M,IP,Model} <- get_config(ip_clients), M=:=Mac  ]
@@ -129,16 +159,11 @@ get_config(Val)->
 
 %% Val={"http",_Link} | {params, Val}
 update_config(Val)->
-   QueueOld=get_config(queues),
-   gen_server:cast(?MODULE,{update_config,Val}),
-   QueueNew=get_config(queues),
-   case QueueNew =:= QueueOld of
-   true->ok;
-   false->
-      %%TODO: create callback active_action:...
-      active_action:blsbls()
-      ok
-   end
+   gen_server:call(?MODULE,{update_config,Val})
+.
+
+update_config_reload(Val)->
+   gen_server:call(?MODULE,{update_config_reload,Val})
 .
 
 default()->
@@ -174,7 +199,7 @@ default()->
   %%    	{"pools":[{"pool1","192.168.0.111",5060,"login","password"},{"pool2","192.168.0.112",5075,"",""},...]}
   %%    ]}
 
-  {queues,[{"queue1","all",11,[001,002,003]},{"queue2","all",120,[004,005,006]}]},
+  {queues,[{"line1","all",11,[]}]},
   {numbers,[{001,"passwd1","user 001"}, {002,"passwd2","user 002"}]},
   {incoming_lines,[]},
   {pools,[]},

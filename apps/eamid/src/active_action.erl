@@ -3,7 +3,7 @@
 -define(TIMEOUT,5000).
 -define(EOL,"\r\n").
 
--export([start_link/0,start_link/4,redirect/2,callback/2,queueremove/2,queueadd/2]).
+-export([start_link/0,start_link/4,redirect/2,callback/2,queueremove/2,queueadd/2,queuereload/0]).
 -export([code_change/3,handle_cast/2,handle_info/2,terminate/2,init/1,handle_call/3]).
 
 -record(newchannel,{privilege, channel, channelstate, channelstatedesc, calleridnum, calleridname, accountcode, application, applicationdata, exten, context, uniqueid,link=none,date,history}).
@@ -33,28 +33,37 @@ handle_cast({redirect,Channel,NumberTo}, Socket) ->
 		,[Channel,NumberTo])),
 	gen_tcp:send(Socket,Message),
 	parser([],Socket),
-	{noreply, Socket};
+	{noreply, Socket}.
 
-handle_cast({queueadd,Queue,Number}, Socket) ->
+
+handle_call({queuereload}, _From, Socket) ->
+	Message=lists:flatten(
+	io_lib:format(
+		'Action: QueueReload\r\n\r\n'
+		,[Queue,Number])),
+	gen_tcp:send(Socket,Message),
+	parser([],Socket),
+	{reply, ok, Socket};
+handle_call({queueadd,Queue,Number}, _From, Socket) ->
 	Message=lists:flatten(
 	io_lib:format(
 		'Action: QueueAdd\r\nQueue: ~s\r\nInterface: SIP/~s\r\n\r\n'
 		,[Queue,Number])),
 	gen_tcp:send(Socket,Message),
 	parser([],Socket),
-	{noreply, Socket};
+	{reply, ok, Socket};
 
-handle_cast({queueremove,Queue,Number}, Socket) ->
+handle_call({queueremove,Queue,Number}, _From, Socket) ->
 	Message=lists:flatten(
 	io_lib:format(
 		'Action: QueueRemove\r\nQueue: ~s\r\nInterface: SIP/~s\r\n\r\n'
 		,[Queue,Number])),
 	gen_tcp:send(Socket,Message),
 	parser([],Socket),
-	{noreply, Socket}.
+	{reply, ok, Socket};
+handle_call(_,_,_)-> ok.
 
 code_change(_,_,_)-> ok.
-handle_call(_,_,_)-> ok.
 handle_info(_,_)->   ok.
 terminate(_,_)->     ok.
 
@@ -68,6 +77,15 @@ parser(Body,Socket)->
 		{tcp,Socket,Line} when (Line=:= ?EOL)and(Body =:= [{response,"Success"},{message,"Authentication accepted"}]) -> 
 			error_logger:info_msg({?MODULE,parser},"AMI protocol: auth access"),
 			[{asterisk_eami,access_auth}];
+		{tcp,Socket,Line} when (Line=:= ?EOL)and(Body =:= [{response,"Success"},{message,"Added interface to queue"}]) -> 
+			error_logger:info_msg({?MODULE,parser},"AMI protocol: Added interface to queue"),
+			[{asterisk_eami,interface_add}];
+		{tcp,Socket,Line} when (Line=:= ?EOL)and(Body =:= [{response,"Success"},{message,"Removed interface from queue"}]) -> 
+			error_logger:info_msg({?MODULE,parser},"AMI protocol: Removed interface from queue"),
+			[{asterisk_eami,interface_del}];
+		{tcp,Socket,Line} when (Line=:= ?EOL)and(Body =:= [{response,"Success"},{message,"Queue reloaded successfully"}]) -> 
+			error_logger:info_msg({?MODULE,parser},"AMI protocol: Queue reloaded successfully"),
+			[{asterisk_eami,queue_reload}];
 		{tcp,Socket,Line} when (Line=:= ?EOL)and(Body =:= [{response,"Error"},{message,"Authentication failed"}]) -> 
 			error_logger:error_msg({?MODULE,parser},"AMI protocol: bad auth"),
 			[{asterisk_eami,bad_auth}];
@@ -76,6 +94,12 @@ parser(Body,Socket)->
 			[{asterisk_eami,perm_denied}];
 		{tcp,Socket,Line} when (Line=:= ?EOL)and(Body =:= [{response,"Error"},{message,"Message: Missing action in request"}])->
 			error_logger:error_msg({?MODULE,parser},"AMI protocol: error action"),
+			[{asterisk_eami,error_action}];
+		{tcp,Socket,Line} when (Line=:= ?EOL)and(Body =:= [{response,"Error"},{message,"Message: Unable to add interface: Already there"}])->
+			error_logger:error_msg({?MODULE,parser},"AMI protocol: unknown error"),
+			[{asterisk_eami,error_action}];
+		{tcp,Socket,Line} when (Line=:= ?EOL)and(Body =:= [{response,"Error"},{message,"Message: Unable to remove interface: Not there"}])->
+			error_logger:error_msg({?MODULE,parser},"AMI protocol: unknown error"),
 			[{asterisk_eami,error_action}];
 		{tcp,Socket,Line} when Line=:= ?EOL -> Body;
 		{tcp,Socket,Line} when Line=:= "Asterisk Call Manager/1.1\r\n" -> 
@@ -119,16 +143,21 @@ queueadd(all, Number)->
 ;
 queueadd(Queue, Number)->
     error_logger:info_msg({?MODULE,queueadd},"Active action QUEUEADD. Channel: "++Queue++" . Interface: "++Number),
-	gen_server:cast(?MODULE,{queueadd,Queue,Number})
+	gen_server:call(?MODULE,{queueadd,Queue,Number})
 .
 
 queueremove(all, Number)->
-    error_logger:info_msg({?MODULE,queueadd},"Active action QUEUEREMOVE. Interface: "++Number),
+    error_logger:info_msg({?MODULE,queueremove},"Active action QUEUEREMOVE. Interface: "++Number),
     [ queueremove(Queue,Number) || {Queue,_,_,Numbers} <- config_srv:get_config(queues), lists:member(Number,Numbers)]
 ;
 queueremove(Queue, Number)->
     error_logger:info_msg({?MODULE,queueremove},"Active action QUEUEREMOVE. Channel: "++Queue++" . Interface: "++Number),
-	gen_server:cast(?MODULE,{queueremove,Queue,Number})
+	gen_server:call(?MODULE,{queueremove,Queue,Number})
+.
+
+queuereload()->
+    error_logger:info_msg({?MODULE,queuereload},"Active action QUEUERELOAD."),
+	gen_server:call(?MODULE,{queuereload})
 .
 
 %%chan_spy(Channel,NumberTo)->
