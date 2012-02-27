@@ -1,0 +1,8 @@
+Channel: SIP/callman61/{{to}}
+Callerid: {{from}}
+MaxRetries: 0
+RetryTime: 300
+WaitTime: 45
+Context: komm
+Extension: {{from}}
+Priority: 1
