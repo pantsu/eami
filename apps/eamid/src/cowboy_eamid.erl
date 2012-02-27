@@ -27,7 +27,7 @@ union([H|Tail])->
 .
 freecall()->
 	[ [{'Channel',X#newchannel.channel},{'CallerIDNum',X#newchannel.calleridnum},{'Uniqueid',X#newchannel.uniqueid},{'Link',"None"},{'TimeStart',X#newchannel.date}] 
-		|| X <- qcalls:get(), X#newchannel.link=:=none, config_srv:is_lnumber(X#newchannel.calleridnum)]
+		|| X <- qcalls:get(), X#newchannel.link=:=none, config_srv:is_lnumber(X#newchannel.calleridnum) =:= false]
 .
 
 call(error,_)->ok;
@@ -128,7 +128,7 @@ terminate(Req, State) ->
 %% ------------------------------------------------------------------
 set_device(P)->
 	Mac=string:to_upper(pp("macaddr",P)--":::::::"),
-	{Ip,Model}=config_srv:get_ipclients(Mac),
+	[{Ip,Model}]=config_srv:get_ipclients(Mac),
 	{ok,Cisco79xx}=
 	case Model of
 		"Cisco7940"-> cisco7940_dtl:render([{number,pp("number",P)}, {sipproxy, config_srv:get_config(sipproxy)}]);
