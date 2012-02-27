@@ -64,7 +64,6 @@ handle(Req, State) ->
 		end,
 		case (catch json2:decode_string(lists:flatten(Body))) of
 			{ok,{struct,P}}->
-				io:format('~n~w~n',[P]),
 				case pp("action",P) of
 					"status"-> 
 						Queue=union(qcalls:get())++freecall() ,
