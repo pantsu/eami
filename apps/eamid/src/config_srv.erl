@@ -96,7 +96,7 @@ pp(Val,Config)->
 .
 
 get_ipclients(Mac)->
-    [ {IP,Model}  || {IP, Mac, Model} <- get_config(ip_clients), M=:=Mac  ]
+    [ {IP,Model}  || {IP, M, Model} <- get_config(ip_clients), M=:=Mac  ]
 .
 
 get_nqueues(Num)->
