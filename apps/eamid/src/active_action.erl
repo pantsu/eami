@@ -6,7 +6,7 @@
 -export([start_link/0,start_link/4,redirect/2,callback/2,queueremove/2,queueadd/2,queuereload/0]).
 -export([code_change/3,handle_cast/2,handle_info/2,terminate/2,init/1,handle_call/3]).
 
--record(newchannel,{privilege, channel, channelstate, channelstatedesc, calleridnum, calleridname, accountcode, application, applicationdata, exten, context, uniqueid,link=none,date,history}).
+%%-record(newchannel,{privilege, channel, channelstate, channelstatedesc, calleridnum, calleridname, accountcode, application, applicationdata, exten, context, uniqueid,link=none,date,history}).
 
 %%gen_server callback function
 start_link()->       start_link("localhost",5038,"","").
@@ -68,8 +68,8 @@ handle_info(_,_)->   ok.
 terminate(_,_)->     ok.
 
 %%internal function.
-newtime()-> calendar:datetime_to_gregorian_seconds(calendar:now_to_universal_time( now()))-719528*24*3600.
-pp(P,List)-> case [X||{Y,X}<-List,Y=:=P] of [Answer]->Answer; _->error end.
+%%newtime()-> calendar:datetime_to_gregorian_seconds(calendar:now_to_universal_time( now()))-719528*24*3600.
+%%pp(P,List)-> case [X||{Y,X}<-List,Y=:=P] of [Answer]->Answer; _->error end.
 
 %%TODO ADD ERLYDTL AS TEMPLATE
 parser(Body,Socket)->
