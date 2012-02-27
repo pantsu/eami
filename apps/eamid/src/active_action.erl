@@ -40,7 +40,7 @@ handle_call({queuereload}, _From, Socket) ->
 	Message=lists:flatten(
 	io_lib:format(
 		'Action: QueueReload\r\n\r\n'
-		,[Queue,Number])),
+		,[])),
 	gen_tcp:send(Socket,Message),
 	parser([],Socket),
 	{reply, ok, Socket};
