@@ -96,7 +96,7 @@ pp(Val,Config)->
 .
 
 get_ipclients(Mac)->
-    [ {IP,Model}  || {M,IP,Model} <- get_config(ip_clients), M=:=Mac  ]
+    [ {IP,Model}  || {IP, Mac, Model} <- get_config(ip_clients), M=:=Mac  ]
 .
 
 get_nqueues(Num)->
@@ -124,7 +124,7 @@ create_asterisk_config()->
 
 ip_clients(IPClient)->
     case string:tokens(IPClient, "/") of
-        [IP,_Mac,_Model]-> IP;
+        [IP,Mac,Model]-> {IP,string:to_upper(Mac--":::::::"),Model};
         _->[]
     end
 .

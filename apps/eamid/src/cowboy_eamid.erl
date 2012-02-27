@@ -1,6 +1,6 @@
 -module(cowboy_eamid).
 
--export([init/3, handle/2, terminate/2]).
+-export([init/3, handle/2, terminate/2,set_device/1]).
 -record(newchannel,{privilege, channel, channelstate, channelstatedesc, calleridnum, calleridname, accountcode, application, applicationdata, exten, context, uniqueid,link=none,date,history}).
 
 pp(P,List)->
@@ -69,41 +69,18 @@ handle(Req, State) ->
 					"status"-> 
 						Queue=union(qcalls:get())++freecall() ,
 						list_to_binary(json2:encode({struct,[{status,{array,[{struct,X}||X<-Queue ]}}]}))
-					
 					;
 					"call"->
 						call(pp("from",P),pp("to",P)),
                                                 list_to_binary("{\"action\":\"ok\"}")
 					;
-                    "redirect"->
+					"redirect"->
 						%%{"action":"redirect","channel":"_CHANEL","number":"66666"}
                                                 active_action:redirect(pp("channel",P),pp("number",P)),
                                                 list_to_binary("{\"action\":\"ok\"}")
                                         ;
 					"set_device"->
-						{ok,Cisco79xx}=
-						case pp("model",P) of
-							"Cisco 7940"-> cisco7940_dtl:render([{number,pp("number",P)}, {sipproxy, config_srv:get_config(sipproxy)}]);
-							"Cisco 7942"-> cisco7942_dtl:render([{number,pp("number",P)}, {sipproxy, config_srv:get_config(sipproxy)}]);
-							_->{ok,nodevice}
-						end,
-						Mac=string:to_upper(pp("macaddr",P)--":::::::"),
-						Filename=
-						case pp("model",P) of
-							"Cisco 7940"-> config_srv:get_config(tftproot)++"/SIP"++Mac++".cnf";
-							"Cisco 7942"-> config_srv:get_config(tftproot)++"/SEP"++Mac++".cnf.xml"
-						end,
-						io:format('[FILENAME]: ~s~n',[Filename]),
-						file:write_file(Filename,lists:flatten(Cisco79xx)),
-						case pp("model",P) of
-							"Cisco 7940"-> 
-								catch spawn(os,cmd,["/usr/local/unison/eamid/template/cisco7940.expect "++config_srv:get_ipclients(Mac)])
-							;
-							"Cisco 7942"-> 
-								catch spawn(os,cmd,["/usr/local/unison/eamid/template/cisco7942.expect "++config_srv:get_ipclients(Mac)])
-							;
-							_->{ok,nodevice}
-						end,
+						set_device(P),
 						list_to_binary("{\"action\":\"ok\"}")
 					;     
 					"chan_spy"->
@@ -145,3 +122,34 @@ handle(Req, State) ->
 terminate(Req, State) ->
     ok.
 
+
+%% ------------------------------------------------------------------
+%% Internal Function Definitions
+%% ------------------------------------------------------------------
+set_device(P)->
+	Mac=string:to_upper(pp("macaddr",P)--":::::::"),
+	{Ip,Model}=config_srv:get_ipclients(Mac),
+	{ok,Cisco79xx}=
+	case Model of
+		"Cisco7940"-> cisco7940_dtl:render([{number,pp("number",P)}, {sipproxy, config_srv:get_config(sipproxy)}]);
+		"Cisco7942"-> cisco7942_dtl:render([{number,pp("number",P)}, {sipproxy, config_srv:get_config(sipproxy)}]);
+		_->{ok,nodevice}
+	end,
+	Filename=
+	case Model of
+		"Cisco7940"-> config_srv:get_config(tftproot)++"/SIP"++Mac++".cnf";
+		"Cisco7942"-> config_srv:get_config(tftproot)++"/SEP"++Mac++".cnf.xml"
+	end,
+	io:format('[FILENAME]: ~s~n',[Filename]),
+	file:write_file(Filename,lists:flatten(Cisco79xx)),
+
+	case Model of
+		"Cisco7940"-> 
+			catch spawn(os,cmd,["/usr/local/unison/eamid/template/cisco7940.expect "++Ip])
+		;
+		"Cisco7942"}-> 
+			catch spawn(os,cmd,["/usr/local/unison/eamid/template/cisco7942.expect "++Ip])
+		;
+		_->{ok,nodevice}
+	end
+.
