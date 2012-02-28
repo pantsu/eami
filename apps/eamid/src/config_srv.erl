@@ -117,7 +117,10 @@ is_lnumber([])->
 	false
 ;
 is_lnumber(Num) when is_list(Num)->
-	is_lnumber(list_to_integer(Num))
+        catch list_to_integer(Num) of
+                {'EXIT',_}->false;
+                NumInteger->is_lnumber(NumInteger)
+        end
 .
 
 create_asterisk_config()->
