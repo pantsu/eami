@@ -117,7 +117,7 @@ is_lnumber([])->
 	false
 ;
 is_lnumber(Num) when is_list(Num)->
-        catch list_to_integer(Num) of
+        case catch list_to_integer(Num) of
                 {'EXIT',_}->false;
                 NumInteger->is_lnumber(NumInteger)
         end
