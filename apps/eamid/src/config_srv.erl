@@ -113,6 +113,9 @@ is_lnumber(Num) when is_number(Num)->
 	_-> true
 	end
 ;
+is_lnumber([])->
+	false
+;
 is_lnumber(Num) when is_list(Num)->
 	is_lnumber(list_to_integer(Num))
 .
