@@ -6,8 +6,6 @@
 -export([code_change/3,handle_cast/2,handle_info/2,terminate/2]).
 
 -record(newchannel,{privilege, channel, channelstate, channelstatedesc, calleridnum, calleridname, accountcode, application, applicationdata, exten, context, uniqueid,link=none,date,history}).
--record(newstate,{privilege,channel,channelstate,channelstatedesc,calleridnum,calleridname,uniqueid}).
--record(newexten,{privilege,channel,context,extension,priority,application,appdata,uniqueid}).
 
 
 %%internal function.
@@ -35,7 +33,18 @@ handle_cast(_,_)->   ok.
 handle_info(_,_)->   ok.
 terminate(_,_)->     ok.
 
-handle_call({add,Channel}, _From, Session)-> {reply, ok, Session++[Channel]};
+handle_call({add,Channel}, _From, Session)  -> 
+	{reply,ok,
+	case  Channel#newchannel.channel of
+	[$A,$s,$y,$n,$c,$G,$o,$t,$o,$/ | NoAsync]->
+		NoAsyncChannel=Channel#newchannel{channel=NoAsync,history=[Channel]},
+		Session++[NoAsyncChannel]
+	;
+	_-> Session++[Channel]
+	end
+	}
+;
+%%handle_call({add,Channel}, _From, Session)-> {reply, ok, Session++[Channel]};
 
 handle_call({del,Channel}, _From, Session)->
 	   	     [error_logger:error_msg({?MODULE,handle_call_del},
